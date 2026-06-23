@@ -1,0 +1,151 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: LifeOS S3 archive bucket for media, documents, manifests, and backup staging.
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: Globally unique S3 bucket name, e.g. lifeos-archive-example
+
+Resources:
+  LifeOSArchiveBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Ref BucketName
+
+      Tags:
+        - Key: Project
+          Value: LifeOS
+        - Key: Component
+          Value: AWSArchiveMigration
+        - Key: Owner
+          Value: Jared-Godar
+        - Key: Purpose
+          Value: ArchiveBackup
+        - Key: ManagedBy
+          Value: CloudFormation
+
+      VersioningConfiguration:
+        Status: Enabled
+
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+      LifecycleConfiguration:
+        Rules:
+          - Id: MediaStandardToGlacier
+            Status: Enabled
+            Prefix: media/
+            Transitions:
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 90
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 365
+            NoncurrentVersionTransitions:
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+
+          - Id: CameraDumpsStandardToGlacier
+            Status: Enabled
+            Prefix: media/Camera-Dumps/
+            Transitions:
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 90
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 365
+            NoncurrentVersionTransitions:
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+
+          - Id: DocumentsArchiveLifecycle
+            Status: Enabled
+            Prefix: documents-archive/
+            Transitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 90
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 365
+            NoncurrentVersionTransitions:
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+
+          - Id: GoogleDriveArchiveLifecycle
+            Status: Enabled
+            Prefix: google-drive-archive/
+            Transitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 90
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 365
+            NoncurrentVersionTransitions:
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+
+          - Id: ManifestRetention
+            Status: Enabled
+            Prefix: manifests/
+            Transitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+            NoncurrentVersionTransitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+
+          - Id: AbortIncompleteMultipartUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+
+  LifeOSArchiveBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LifeOSArchiveBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub "${LifeOSArchiveBucket.Arn}"
+              - !Sub "${LifeOSArchiveBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+Outputs:
+  BucketName:
+    Description: Created S3 archive bucket name.
+    Value: !Ref LifeOSArchiveBucket
+
+  BucketArn:
+    Description: Created S3 archive bucket ARN.
+    Value: !GetAtt LifeOSArchiveBucket.Arn
+
+  ExampleGoProSyncCommand:
+    Description: Example GoPro upload command.
+    Value: !Sub "aws s3 sync ~/Movies/GoPro s3://${BucketName}/media/GoPro --storage-class STANDARD"
+
+  ExampleManifestUploadCommand:
+    Description: Example manifest upload command.
+    Value: !Sub "aws s3 cp ~/Desktop/archive_manifests/gopro_sha256_manifest.txt s3://${BucketName}/manifests/gopro_sha256_manifest.txt"
