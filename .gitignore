@@ -1,0 +1,9 @@
+# Local validation files
+test-data/
+restored.txt
+
+# Local logs and generated manifests
+logs/*
+!logs/.gitkeep
+manifests/*
+!manifests/.gitkeep
