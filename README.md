@@ -1,0 +1,163 @@
+# LifeOS AWS Archive
+
+Personal Infrastructure-as-Code project for long-term archival, backup, and organization of digital assets using AWS and CloudFormation.
+
+## Overview
+
+LifeOS AWS Archive is a personal cloud archival platform designed to support a broader digital organization initiative spanning:
+
+- macOS file organization
+- Obsidian knowledge management
+- personal media preservation
+- photo and video archives
+- document retention
+- disaster recovery
+- long-term cloud storage
+
+The initial implementation focuses on Infrastructure-as-Code (IaC) deployment of secure AWS S3 storage using CloudFormation.
+
+## Project Goals
+
+### Primary Goals
+
+- Preserve important digital assets
+- Create off-device backups of irreplaceable media
+- Establish repeatable Infrastructure-as-Code practices
+- Develop a maintainable personal cloud archive
+- Build a public portfolio demonstrating AWS skills
+
+### Secondary Goals
+
+- Reduce local storage consumption
+- Support future media organization efforts
+- Enable lifecycle management and archival storage tiers
+- Provide a foundation for automation and data-management workflows
+
+## Architecture
+
+### Current Components
+
+- AWS S3 Archive Bucket
+- AWS CloudFormation Template
+- GitHub Version Control
+- AWS CLI Deployment Workflow
+
+### Planned Components
+
+- Lifecycle policies
+- Glacier archival tiers
+- Backup verification workflows
+- Manifest generation
+- Automated media ingestion
+- Integrity validation
+- Cost monitoring
+- Event notifications
+
+## Repository Structure
+
+```text
+lifeos-aws-archive/
+
+├── cloudformation/
+│   └── lifeos-s3-archive.yaml
+│
+├── docs/
+│   ├── archive-strategy.md
+│   └── runbook.md
+│
+├── scripts/
+│   ├── generate_manifest.sh
+│   ├── sync_gopro_to_s3.sh
+│   └── verify_gopro_sync.sh
+│
+├── logs/
+│   └── .gitkeep
+│
+└── README.md
+```
+
+## Technology Stack
+
+### Cloud
+
+- AWS S3
+- AWS CloudFormation
+- AWS CLI
+
+### Development
+
+- VS Code
+- Git
+- GitHub
+
+### Platform
+
+- macOS
+- Apple Silicon
+
+## Deployment
+
+Validate the CloudFormation template:
+
+```bash
+aws cloudformation validate-template \
+  --template-body file://cloudformation/lifeos-s3-archive.yaml
+```
+
+Deploy the stack:
+
+```bash
+aws cloudformation deploy \
+  --template-file cloudformation/lifeos-s3-archive.yaml \
+  --stack-name lifeos-s3-archive
+```
+
+## Roadmap
+
+### Phase 1 – Infrastructure Foundation
+
+- [x] Create GitHub repository
+- [x] Configure AWS CLI
+- [x] Create CloudFormation template
+- [ ] Deploy archive bucket
+- [ ] Validate access controls
+
+### Phase 2 – Media Archive
+
+- [ ] Upload GoPro archive
+- [ ] Upload photo archive
+- [ ] Create file manifests
+- [ ] Verify upload integrity
+
+### Phase 3 – Automation
+
+- [ ] Automated synchronization scripts
+- [ ] Lifecycle policies
+- [ ] Glacier transition
+- [ ] Cost reporting
+
+### Phase 4 – Digital Organization Integration
+
+- [ ] Obsidian integration
+- [ ] macOS organizational workflow integration
+- [ ] Knowledge-management archive strategy
+- [ ] Disaster-recovery procedures
+
+## Future Expansion
+
+The long-term vision is for this repository to become the cloud archival component of a broader LifeOS ecosystem integrating:
+
+- macOS organizational workflows
+- Obsidian knowledge management
+- GTD project management
+- digital asset preservation
+- cloud-based backup and disaster recovery
+- automation and personal infrastructure
+
+## Author
+
+Jared Godar
+
+Data Engineer | Veteran | AWS Practitioner
+
+This repository serves as both a practical archival solution and an ongoing demonstration of cloud infrastructure, automation, documentation, and operational engineering practices.
