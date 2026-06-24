@@ -1,0 +1,38 @@
+name: Validate CloudFormation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "cloudformation/**/*.yaml"
+      - "cloudformation/**/*.yml"
+      - ".github/workflows/validate-cloudformation.yml"
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "cloudformation/**/*.yaml"
+      - "cloudformation/**/*.yml"
+      - ".github/workflows/validate-cloudformation.yml"
+
+jobs:
+  cfn-lint:
+    name: Run cfn-lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install cfn-lint
+        run: pip install cfn-lint
+
+      - name: Validate CloudFormation templates
+        run: cfn-lint cloudformation/*.yaml
