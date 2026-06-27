@@ -70,7 +70,7 @@ replace_in_file() {
   local replacement="$3"
 
   if [[ -f "$file" ]]; then
-    perl -pi -e "s/\Q${search}\E/${replacement}/g" "$file"
+    SEARCH="$search" REPLACEMENT="$replacement" perl -pi -e 's/\Q$ENV{SEARCH}\E/$ENV{REPLACEMENT}/g' "$file"
   fi
 }
 
