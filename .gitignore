@@ -1,5 +1,6 @@
 # Local validation files
 test-data/
+restore-tests/
 restored.txt
 
 # Local logs and generated manifests
@@ -7,8 +8,45 @@ logs/*
 !logs/.gitkeep
 manifests/*
 !manifests/.gitkeep
-# Script runtime logs
 scripts/logs/
 
 # Local secrets and machine-specific configuration
-.env.private
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.pub
+*.kdbx
+
+# Local AWS / cloud artifacts
+.aws/
+awscliv2.zip
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Local git history rewrite inputs
+replacements.txt
+filter-repo/
+*.bak
+
+# macOS / editor noise
+.DS_Store
+.AppleDouble
+.LSOverride
+.vscode/*
+!.vscode/settings.json
+*.swp
+*.swo
+
+# Python / tooling cache
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.pyc
