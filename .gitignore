@@ -50,3 +50,9 @@ __pycache__/
 .mypy_cache/
 .ruff_cache/
 *.pyc
+
+# Python environments
+.venv/
+
+# Local Python version selection
+.python-version
