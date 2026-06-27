@@ -19,15 +19,45 @@ The goals of this taxonomy are to:
 
 ### Stability Over Perfection
 
-Once a top-level storage category is established and populated, it should rarely change. Stable paths make automation, documentation, and retrieval easier.
+Once a top-level storage category is established and populated, it should rarely change.
+
+Stable paths make automation, documentation, lifecycle management, and retrieval easier.
 
 ### Human Readability
 
 Storage locations should be understandable without requiring additional documentation.
 
+A folder path should remain interpretable decades later even if the originating hardware or software no longer exists.
+
 ### Event-Based Organization
 
-Photos, videos, and recordings should generally be grouped by event rather than device.
+Photos, videos, and recordings should generally be grouped by event rather than by capture device.
+
+Preferred:
+
+```text
+2026-07-04_independence-day
+2026-06-24_mvet-performance
+2025-11-15_new-orleans-trip
+```
+
+Avoid using device-only folders as permanent archival destinations:
+
+```text
+iphone/
+camera-roll/
+sd-card-03/
+```
+
+### Meaning Over Device
+
+Folder hierarchy should answer:
+
+> What is this?
+
+Metadata should answer:
+
+> When, where, how, and with whom?
 
 ### Automation Friendly
 
@@ -45,6 +75,24 @@ Avoid:
 MVET Performance June 24th!!!
 ```
 
+### Preserve Originals
+
+Original media should remain unmodified whenever practical.
+
+Derivative files should never replace source material.
+
+Preferred hierarchy:
+
+```text
+Original
+↓
+Working Copy
+↓
+Edited Master
+↓
+Distribution Export
+```
+
 ---
 
 ## S3 Archive Structure
@@ -54,8 +102,13 @@ s3://lifeos-archive/
 
 photos/
 │
-├── camera-imports/
+├── ingest/
+│   ├── iphone/
+│   ├── camera-imports/
+│   └── scanner/
+│
 ├── processed/
+│
 └── events/
     └── YYYY/
         └── YYYY-MM-DD_event-name/
@@ -69,14 +122,21 @@ video/
 ├── iphone/
 │   └── YYYY/
 │
-└── edited/
-    └── YYYY/
+├── edited/
+│   └── YYYY/
+│
+└── projects/
+    └── project-name/
 
 audio/
 │
 ├── music/
 │
 ├── concert-recordings/
+│
+├── rehearsals/
+│
+├── field-recordings/
 │
 └── voice-recordings/
 
@@ -127,6 +187,94 @@ logs/
 
 ---
 
+## Preservation Classes
+
+### Tier 0 — Irreplaceable
+
+Examples:
+
+- family photographs
+- military records
+- mission photography
+- original recordings
+- historical documents
+
+Storage policy:
+
+- local copy
+- S3 Standard
+- Glacier Deep Archive
+- offline copy when practical
+
+### Tier 1 — Important but Reproducible
+
+Examples:
+
+- edited videos
+- project assets
+- exports
+- deliverables
+- work products
+
+Storage policy:
+
+- local copy
+- S3 Standard
+- Glacier optional
+
+### Tier 2 — Disposable
+
+Examples:
+
+- downloads
+- installers
+- temporary exports
+- caches
+- scratch files
+
+Storage policy:
+
+- local storage only
+- delete when no longer useful
+
+---
+
+## Archive Lifecycle
+
+Objects generally move through the following stages:
+
+```text
+capture
+    ↓
+ingest
+    ↓
+verify
+    ↓
+classify
+    ↓
+archive
+    ↓
+glacier
+```
+
+Example:
+
+```text
+GoPro SD Card
+    ↓
+~/Movies/GoPro
+    ↓
+video/gopro/
+    ↓
+manifest verification
+    ↓
+video/events/2026/2026-07-04_mvet-performance/
+    ↓
+Glacier lifecycle transition
+```
+
+---
+
 ## Current Known Data Sources
 
 ### GoPro Archive
@@ -143,13 +291,16 @@ Approximate size:
 178 GB
 ```
 
-Destination:
+Current destination:
 
 ```text
 video/gopro/
 ```
 
----
+Notes:
+
+- Current location serves as the ingest zone.
+- Future automation may classify content into event-based locations.
 
 ### Photos Library
 
@@ -171,8 +322,6 @@ Destination:
 photos/
 ```
 
----
-
 ### Historical Photo Collections
 
 Local source:
@@ -183,19 +332,17 @@ Local source:
 
 Contains:
 
-- Travel photography
-- Family photos
-- Nature photography
-- Event photography
-- Camera dumps
+- travel photography
+- family photos
+- nature photography
+- event photography
+- camera imports
 
 Destination:
 
 ```text
 photos/events/
 ```
-
----
 
 ### Obsidian Vaults
 
@@ -207,9 +354,9 @@ obsidian/vault-backups/
 
 Purpose:
 
-- Periodic vault snapshots
-- Disaster recovery
-- Historical version retention
+- periodic vault snapshots
+- disaster recovery
+- historical version retention
 
 ---
 
@@ -227,8 +374,6 @@ Example:
 2026
 ```
 
----
-
 ### Events
 
 ```text
@@ -243,8 +388,6 @@ Examples:
 2025-11-15_new-orleans-trip
 ```
 
----
-
 ### File Names
 
 Preferred:
@@ -253,15 +396,21 @@ Preferred:
 2026-06-24_mvet-performance_001.mp4
 ```
 
-Avoid:
+Preferred extended format:
+
+```text
+20260704_193000_GOPRO_MVET250TH_001.MP4
+```
+
+Avoid for generated, processed, or exported content:
 
 ```text
 IMG_0001.mp4
+GOPR1043.MP4
+DSC_3872.JPG
 ```
 
-when creating processed or exported files.
-
-Original files should remain unmodified.
+Original source material should remain unmodified.
 
 ---
 
@@ -276,8 +425,9 @@ Original files should never be renamed, modified, or deleted until upload verifi
 Large uploads should be accompanied by:
 
 - SHA256 manifests
-- Upload logs
-- Verification reports
+- upload logs
+- verification reports
+- object inventories
 
 ### Verify Before Deleting
 
@@ -287,11 +437,11 @@ Cloud copies must be verified before removing local source files.
 
 The archive bucket must never contain:
 
-- Passwords
+- passwords
 - API keys
 - AWS credentials
 - SSH private keys
-- Authentication tokens
+- authentication tokens
 
 ### Infrastructure as Code
 
@@ -304,12 +454,20 @@ Changes to archive infrastructure should be made through CloudFormation whenever
 Planned future additions include:
 
 - Glacier lifecycle policies
-- Automated upload workflows
-- Integrity validation automation
-- Cost reporting
-- Media indexing
-- Metadata extraction
-- Searchable archive inventory
+- automated upload workflows
+- integrity validation automation
+- cost reporting
+- media indexing
+- metadata extraction
+- searchable archive inventory
+- EXIF extraction
+- GPS indexing
+- OCR extraction
+- speech-to-text transcription
+- face clustering
+- semantic tagging
+- event correlation
+- AI-assisted search
 
 ---
 
@@ -318,3 +476,4 @@ Planned future additions include:
 | Date | Author | Notes |
 | --- | --- | --- |
 | 2026-06-24 | Jared Godar | Initial taxonomy definition |
+| 2026-06-27 | Jared Godar | Added preservation classes, archive lifecycle model, metadata strategy, and future automation support |
