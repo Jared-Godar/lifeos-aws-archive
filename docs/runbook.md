@@ -530,3 +530,22 @@ The archive is considered operational when:
 - Cloud storage costs remain predictable
 - Important data exists in multiple locations
 - Future-you can operate the system using this runbook alone
+
+---
+
+## Revision History
+
+| Date | Author | Notes |
+| ------ | -------- | ------- |
+| 2026-06-24 | Jared Godar | Initial runbook definition covering CloudFormation deployment, validation, upload procedures, manifests, restore testing, and operational maintenance. |
+| 2026-06-27 | Jared Godar | Added GitHub Actions validation workflow and CI expectations. |
+| 2026-06-27 | Jared Godar | Added production GoPro sync and verification script workflows replacing manual sync procedures. |
+| 2026-06-27 | Jared Godar | Added billing alarm verification, budget review, and SNS validation procedures. |
+| 2026-06-27 | Jared Godar | Added long-running upload guidance using `caffeinate`. |
+| 2026-06-27 | Jared Godar | Added upload monitoring commands and resumable upload procedures. |
+| 2026-06-27 | Jared Godar | Added lock file recovery procedures and AWS session expiration recovery guidance. |
+| 2026-06-27 | Jared Godar | Added Recovery Point Objective (RPO), Recovery Time Objective (RTO), and storage retrieval expectations. |
+| 2026-06-27 | Jared Godar | Expanded monthly, quarterly, and annual operational procedures. |
+| 2026-06-27 | Jared Godar | Added disaster recovery exercise guidance and manifest verification procedures. |
+| 2026-06-27 | Jared Godar | Added public portfolio sanitization by replacing operational account identifiers with placeholders including `ACCOUNT_ID`, `IAM_USERNAME`, and `BUCKET_NAME`. |
+| 2026-06-27 | Jared Godar | Updated document to reflect deployed production architecture rather than initial design assumptions. |

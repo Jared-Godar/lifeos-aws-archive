@@ -416,7 +416,7 @@ Original source material should remain unmodified.
 
 ## Archive Rules
 
-### Preserve Originals
+### Preserve Original Files
 
 Original files should never be renamed, modified, or deleted until upload verification is complete.
 
