@@ -145,9 +145,10 @@ fi
 
 section "Remote Object Sample"
 
-aws s3 ls "$DEST" --recursive | head -5
+aws s3 ls "$DEST" --recursive > /tmp/gopro_remote_objects.txt
+head -5 /tmp/gopro_remote_objects.txt
 echo "..."
-aws s3 ls "$DEST" --recursive | tail -5
+tail -5 /tmp/gopro_remote_objects.txt
 
 if [[ "$RESTORE_SAMPLE" == true ]]; then
   section "Restore Sample Test"
