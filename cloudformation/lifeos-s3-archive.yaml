@@ -20,7 +20,7 @@ Resources:
         - Key: Component
           Value: AWSArchiveMigration
         - Key: Owner
-          Value: Jared-Godar
+          Value: lifeos-admin
         - Key: Purpose
           Value: ArchiveBackup
         - Key: ManagedBy

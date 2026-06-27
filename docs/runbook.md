@@ -23,7 +23,7 @@ Expected output:
 ```json
 {
   "Account": "123456789012",
-  "Arn": "arn:aws:iam::123456789012:user/godarj"
+  "Arn": "arn:aws:iam::123456789012:user/lifeos-admin"
 }
 ```
 
