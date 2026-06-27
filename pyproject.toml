@@ -15,4 +15,5 @@ dependencies = [
 [dependency-groups]
 dev = [
     "cfn-lint>=1.52.0",
+    "pre-commit>=4.6.0",
 ]
