@@ -9,3 +9,6 @@ manifests/*
 !manifests/.gitkeep
 # Script runtime logs
 scripts/logs/
+
+# Local secrets and machine-specific configuration
+.env.private
