@@ -7,3 +7,5 @@ logs/*
 !logs/.gitkeep
 manifests/*
 !manifests/.gitkeep
+# Script runtime logs
+scripts/logs/
