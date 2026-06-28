@@ -11,6 +11,7 @@
 - [x] Added Markdown linting and formatting configuration for the CLI and VS Code.
 - [x] Added npm scripts and locked development dependencies.
 - [x] Integrated CloudFormation and shell validation with repository tooling.
+- [x] Added a guarded, collection-aware manifest uploader with dry-run and checksum verification.
 
 ## Project Review I — Completed
 

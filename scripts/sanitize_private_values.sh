@@ -97,6 +97,7 @@ docs_files=(
 script_files=(
   scripts/resume_gopro_upload.sh
   scripts/sync_gopro_to_s3.sh
+  scripts/upload_manifests_to_s3.sh
   scripts/verify_gopro_sync.sh
 )
 

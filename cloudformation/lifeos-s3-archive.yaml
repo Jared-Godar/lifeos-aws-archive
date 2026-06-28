@@ -207,4 +207,4 @@ Outputs:
 
   ExampleManifestUploadCommand:
     Description: Example manifest upload command.
-    Value: !Sub "aws s3 cp ~/Desktop/archive_manifests/gopro_sha256_manifest.txt s3://${BucketName}/manifests/gopro_sha256_manifest.txt"
+    Value: !Sub "BUCKET=${BucketName} COLLECTION=gopro scripts/upload_manifests_to_s3.sh --execute"

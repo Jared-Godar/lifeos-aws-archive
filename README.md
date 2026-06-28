@@ -71,6 +71,7 @@ lifeos-aws-archive/
 │   ├── resume_gopro_upload.sh
 │   ├── sanitize_private_values.sh
 │   ├── sync_gopro_to_s3.sh
+│   ├── upload_manifests_to_s3.sh
 │   └── verify_gopro_sync.sh
 │
 ├── logs/

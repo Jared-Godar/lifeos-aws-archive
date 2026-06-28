@@ -329,13 +329,19 @@ scripts/generate_manifest.sh ~/Movies/GoPro manifests gopro
 
 Manifest paths are relative to the collection root so the checksums remain usable after restoration to another location.
 
-Upload manifests:
+Preview the manifest upload using `BUCKET_NAME` from `.env.private`:
 
 ```bash
-aws s3 sync \
-  manifests/ \
-  s3://BUCKET_NAME/manifests/
+scripts/upload_manifests_to_s3.sh
 ```
+
+Execute the upload after reviewing the dry run:
+
+```bash
+scripts/upload_manifests_to_s3.sh --execute
+```
+
+The uploader defaults to the `gopro` collection, uploads only `gopro_*.txt` to `manifests/gopro/`, excludes `.gitkeep`, and verifies that no upload actions remain. Use `COLLECTION=photos` for another collection.
 
 ---
 
