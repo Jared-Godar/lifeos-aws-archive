@@ -41,6 +41,9 @@ filter-repo/
 .LSOverride
 .vscode/*
 !.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/cloudformation.schema.json
 *.swp
 *.swo
 
