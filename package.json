@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "lint:md": "remark . --frail",
+    "format:md": "remark . --output --plugins remark-preset-lint-recommended"
+  },
+  "devDependencies": {
+    "remark-cli": "^12.0.1",
+    "remark-preset-lint-recommended": "^7.0.1"
+  }
+}
