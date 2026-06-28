@@ -271,10 +271,7 @@ Current size:
 Always perform a dry run first:
 
 ```bash
-aws s3 sync \
-  ~/Movies/GoPro \
-  s3://BUCKET_NAME/video/gopro/ \
-  --dryrun
+BUCKET=BUCKET_NAME scripts/sync_gopro_to_s3.sh
 ```
 
 Review output carefully.
@@ -286,10 +283,10 @@ Review output carefully.
 When dry run looks correct:
 
 ```bash
-aws s3 sync \
-  ~/Movies/GoPro \
-  s3://BUCKET_NAME/video/gopro/
+BUCKET=BUCKET_NAME scripts/sync_gopro_to_s3.sh --execute
 ```
+
+This guarded workflow applies the upload checksum, lock, logging, and strict post-upload checks defined by the repository.
 
 ---
 
@@ -539,12 +536,5 @@ The archive is considered operational when:
 | 2026-06-24 | Jared Godar | Initial runbook definition covering CloudFormation deployment, validation, upload procedures, manifests, restore testing, and operational maintenance. |
 | 2026-06-27 | Jared Godar | Added GitHub Actions validation workflow and CI expectations. |
 | 2026-06-27 | Jared Godar | Added production GoPro sync and verification script workflows replacing manual sync procedures. |
-| 2026-06-27 | Jared Godar | Added billing alarm verification, budget review, and SNS validation procedures. |
-| 2026-06-27 | Jared Godar | Added long-running upload guidance using `caffeinate`. |
-| 2026-06-27 | Jared Godar | Added upload monitoring commands and resumable upload procedures. |
-| 2026-06-27 | Jared Godar | Added lock file recovery procedures and AWS session expiration recovery guidance. |
-| 2026-06-27 | Jared Godar | Added Recovery Point Objective (RPO), Recovery Time Objective (RTO), and storage retrieval expectations. |
-| 2026-06-27 | Jared Godar | Expanded monthly, quarterly, and annual operational procedures. |
-| 2026-06-27 | Jared Godar | Added disaster recovery exercise guidance and manifest verification procedures. |
-| 2026-06-27 | Jared Godar | Added public portfolio sanitization by replacing operational account identifiers with placeholders including `ACCOUNT_ID`, `IAM_USERNAME`, and `BUCKET_NAME`. |
-| 2026-06-27 | Jared Godar | Updated document to reflect deployed production architecture rather than initial design assumptions. |
+| 2026-06-28 | Jared Godar | Hardened upload checksums, locking, failure handling, manifest portability, and restore verification. |
+| 2026-06-28 | Jared Godar | Updated the canonical workflow to use guarded repository scripts and expanded CI coverage. |

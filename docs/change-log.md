@@ -1,34 +1,33 @@
 # Change Log
 
-|   Date   | Notes |
-| :------: | :---- |
-| 20250628 |       |
+| Date | Notes |
+| --- | --- |
+| 2026-06-28 | Added repository linting and completed two project hardening reviews. |
 
 ---
 
-## 20250628
+## 2026-06-28
 
-- [x] Added markdownlint/prettier on save to `.vscode {} settings.json`
-- [ ] CLI / pre-commit: For automatic corrections in CI or pre-commit:
-  - [ ] Install CLI tools: - [ ] `npm install -D remark-cli remark-preset-lint-recommended` - [ ] cd '/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive' && node -v && npm -v - [ ]
-        Add to .pre-commit-config.yaml or your pre-commit hooks so commits auto-lint/fix.
+- [x] Added Markdown linting and formatting configuration for the CLI and VS Code.
+- [x] Added npm scripts and locked development dependencies.
+- [x] Integrated CloudFormation and shell validation with repository tooling.
 
-```bash
-npm install -D remark-cli remark-preset-lint-recommended
+## Project Review I — Completed
 
-cd '/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive' && node -v && npm -v
+1. [x] Aligned lifecycle rules with the documented S3 taxonomy.
+2. [x] Added checksum-backed upload and restored-sample integrity verification.
+3. [x] Added the required bucket parameter to deployment commands.
+4. [x] Made post-upload verification failures return a nonzero status.
+5. [x] Replaced the racy sync lock with an atomic lock directory.
+6. [x] Made generated manifests portable by recording relative paths.
+7. [x] Made restore sampling safe for object keys containing spaces.
 
-which brew || true && brew --version || true
-```
+## Project Review II — Completed
 
----
-
-## TODO:
-
-1. **High** — _Lifecycle rules miss the actual archive paths._ Upload scripts use video/gopro/, while CloudFormation only transitions media/. The taxonomy also uses documents/ and archive/google-drive-import/, but lifecycle rules target different prefixes. Most archived data will remain in S3 Standard indefinitely. See [template (line 49)](/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive/cloudformation/lifeos-s3-archive.yaml:49) and [sync script (line 31)](/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive/scripts/sync_gopro_to_s3.sh:31).
-2. **High** — _“Verification” is not integrity verification._ It compares counts and aws s3 sync --dryrun; the restore test only confirms that a file exists after download. No SHA-256 comparison occurs, despite manifests being generated. Corruption could therefore go undetected before local deletion. See [verify_gopro_sync.sh (line 134)](/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive/scripts/verify_gopro_sync.sh:134).
-3. **Medium** — _Documented deployment commands omit a required parameter._ BucketName has no default, so the first deployment commands in both the README and runbook will fail without --parameter-overrides BucketName=.... See [README.md (line 107)](/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive/README.md:107).
-4. **Medium** — _Upload verification failures still return success._ Remaining uploads or count mismatches only produce warnings; the script reaches “Complete” with exit status 0. Automation—or a tired human at 3 a.m.—can interpret an incomplete archive as successful. See [sync_gopro_to_s3.sh (line 186)](/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive/scripts/sync_gopro_to_s3.sh:186).
-5. **Medium** — _The lock can be removed by a competing invocation._ The exit trap is installed before checking the lock. A second process sees the existing lock, exits, and deletes the first process’s lock. The check-and-create operation is also non-atomic. See [sync_gopro_to_s3.sh (line 72)](/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive/scripts/sync_gopro_to_s3.sh:72).
-6. **Low** — _Manifests embed absolute local paths._ That makes later shasum -c restoration checks non-portable and exposes workstation paths in uploaded manifests. See [generate_manifest.sh (line 33)](/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive/scripts/generate_manifest.sh:33).
-7. **Low** — _Restore sampling breaks on object keys containing spaces._ awk '{print $4}' truncates such keys. See [verify_gopro_sync.sh (line 158)](/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive/scripts/verify_gopro_sync.sh:158).
+1. [x] Updated the runbook to use the guarded upload workflow.
+2. [x] Consolidated resume uploads behind the primary sync script and shared lock.
+3. [x] Retained the TLS-enforcement bucket policy with the retained archive bucket.
+4. [x] Replaced stale TODOs and workstation-local links in this change log.
+5. [x] Expanded CI to validate CloudFormation, shell scripts, and Markdown.
+6. [x] Updated project documentation to distinguish implemented and planned features.
+7. [x] Made manifest generation safe for filenames containing newline characters.

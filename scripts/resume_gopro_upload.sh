@@ -1,126 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BUCKET="${BUCKET:-lifeos-archive-example}"
-SOURCE_DIR="${SOURCE_DIR:-$HOME/Movies/GoPro}"
-DEST="s3://${BUCKET}/video/gopro/"
-LOG_DIR="logs"
-TOTAL_EXPECTED_FILES="${TOTAL_EXPECTED_FILES:-63}"
+# Compatibility wrapper for the original resume command. S3 sync is already
+# resumable, so delegate to the guarded upload workflow to share its atomic
+# lock, checksum settings, logging, and strict verification behavior.
 
-mkdir -p "$LOG_DIR"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
-timestamp() {
-  date +"%Y-%m-%d %H:%M:%S"
-}
-
-print_header() {
-  echo
-  echo "========================================"
-  echo "$1"
-  echo "========================================"
-}
-
-print_header "LifeOS GoPro Upload Resume"
-echo "Timestamp: $(timestamp)"
-echo "Source: $SOURCE_DIR"
-echo "Destination: $DEST"
-echo "Log directory: $LOG_DIR"
-echo "Expected file count: $TOTAL_EXPECTED_FILES"
-
-print_header "Preflight Checks"
-
-if [[ ! -d "$SOURCE_DIR" ]]; then
-  echo "ERROR: Source directory does not exist: $SOURCE_DIR"
-  exit 1
+if [[ -n "${TOTAL_EXPECTED_FILES:-}" && -z "${EXPECTED_FILES:-}" ]]; then
+  export EXPECTED_FILES="$TOTAL_EXPECTED_FILES"
 fi
 
-echo "Checking AWS credentials..."
-if ! aws sts get-caller-identity >/dev/null 2>&1; then
-  echo "ERROR: AWS credentials are invalid or expired."
-  echo "Run aws login, then rerun this script."
-  exit 1
-fi
-echo "AWS credentials valid."
-
-echo "Checking bucket access..."
-if ! aws s3 ls "s3://${BUCKET}/" >/dev/null 2>&1; then
-  echo "ERROR: Cannot access bucket: $BUCKET"
-  exit 1
-fi
-echo "Bucket access confirmed."
-
-LOCAL_FILES="$(find "$SOURCE_DIR" -type f | wc -l | tr -d ' ')"
-LOCAL_SIZE="$(du -sh "$SOURCE_DIR" | awk '{print $1}')"
-
-echo "Local files: $LOCAL_FILES"
-echo "Local size:  $LOCAL_SIZE"
-
-print_header "Current Remote Status"
-aws s3 ls "$DEST" --recursive --summarize | tail -2 || true
-
-REMOTE_FILES_BEFORE="$(aws s3 ls "$DEST" --recursive | wc -l | tr -d ' ' || echo 0)"
-REMOTE_BYTES_BEFORE="$(aws s3 ls "$DEST" --recursive --summarize | awk '/Total Size/ {print $3}' || echo 0)"
-
-echo "Remote files before sync: $REMOTE_FILES_BEFORE"
-echo "Remote bytes before sync: $REMOTE_BYTES_BEFORE"
-
-print_header "Dry Run - Remaining Uploads"
-aws s3 sync "$SOURCE_DIR" "$DEST" --dryrun || {
-  echo "ERROR: Dry run failed."
-  exit 1
-}
-
-print_header "Starting / Resuming Upload"
-LOG_FILE="$LOG_DIR/gopro_sync_$(date +%Y%m%d_%H%M%S).log"
-echo "Logging to: $LOG_FILE"
-
-aws s3 sync "$SOURCE_DIR" "$DEST" --checksum-algorithm SHA256 --no-progress 2>&1 | tee "$LOG_FILE"
-
-print_header "Post-Upload Remote Status"
-aws s3 ls "$DEST" --recursive --summarize | tail -2
-
-REMOTE_FILES_AFTER="$(aws s3 ls "$DEST" --recursive | wc -l | tr -d ' ')"
-REMOTE_BYTES_AFTER="$(aws s3 ls "$DEST" --recursive --summarize | awk '/Total Size/ {print $3}')"
-
-echo "Remote files after sync: $REMOTE_FILES_AFTER"
-echo "Remote bytes after sync: $REMOTE_BYTES_AFTER"
-
-print_header "Verification Summary"
-echo "Local files:  $LOCAL_FILES"
-echo "Remote files: $REMOTE_FILES_AFTER"
-VERIFICATION_FAILED=false
-
-if [[ "$LOCAL_FILES" == "$REMOTE_FILES_AFTER" ]]; then
-  echo "PASS: Local and remote file counts match."
-else
-  echo "FAIL: Local and remote file counts do not match."
-  VERIFICATION_FAILED=true
-fi
-
-if [[ "$REMOTE_FILES_AFTER" == "$TOTAL_EXPECTED_FILES" ]]; then
-  echo "PASS: Remote file count matches expected count."
-else
-  echo "FAIL: Remote file count does not match expected count."
-  VERIFICATION_FAILED=true
-fi
-
-print_header "Final Dry Run Check"
-FINAL_DRYRUN="$(aws s3 sync "$SOURCE_DIR" "$DEST" --dryrun)"
-
-if [[ -z "$FINAL_DRYRUN" ]]; then
-  echo "PASS: Final dry run shows no remaining uploads."
-else
-  echo "FAIL: Final dry run found remaining upload actions:"
-  echo "$FINAL_DRYRUN"
-  VERIFICATION_FAILED=true
-fi
-
-if [[ "$VERIFICATION_FAILED" == true ]]; then
-  print_header "Verification Failed"
-  echo "Upload verification failed. Review the results above."
-  exit 1
-fi
-
-print_header "Complete"
-echo "Timestamp: $(timestamp)"
-echo "Resume script complete."
+echo "Resuming through sync_gopro_to_s3.sh with the shared upload lock."
+exec "$SCRIPT_DIR/sync_gopro_to_s3.sh" --execute --no-progress "$@"

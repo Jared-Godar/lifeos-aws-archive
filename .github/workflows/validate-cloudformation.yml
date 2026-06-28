@@ -1,25 +1,17 @@
-name: Validate CloudFormation
+name: Validate Repository
 
 on:
   push:
     branches:
       - main
-    paths:
-      - "cloudformation/**/*.yaml"
-      - "cloudformation/**/*.yml"
-      - ".github/workflows/validate-cloudformation.yml"
 
   pull_request:
     branches:
       - main
-    paths:
-      - "cloudformation/**/*.yaml"
-      - "cloudformation/**/*.yml"
-      - ".github/workflows/validate-cloudformation.yml"
 
 jobs:
-  cfn-lint:
-    name: Run cfn-lint
+  validation:
+    name: CloudFormation, shell, and Markdown
     runs-on: ubuntu-latest
 
     steps:
@@ -31,8 +23,23 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Install cfn-lint
-        run: pip install cfn-lint
+      - name: Install Python validation tools
+        run: pip install cfn-lint==1.52.0 shellcheck-py==0.11.0.1
 
       - name: Validate CloudFormation templates
         run: cfn-lint cloudformation/*.yaml
+
+      - name: Validate shell scripts
+        run: shellcheck scripts/*.sh
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install Markdown tooling
+        run: npm ci
+
+      - name: Validate Markdown
+        run: npm run lint:md

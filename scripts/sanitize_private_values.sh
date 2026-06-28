@@ -89,6 +89,7 @@ echo "Sanitizing current working tree..."
 docs_files=(
   README.md
   docs/archive-strategy.md
+  docs/change-log.md
   docs/media-taxonomy.md
   docs/runbook.md
 )

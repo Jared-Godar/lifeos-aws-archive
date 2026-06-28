@@ -41,15 +41,14 @@ The initial implementation focuses on Infrastructure-as-Code (IaC) deployment of
 - AWS CloudFormation Template
 - GitHub Version Control
 - AWS CLI Deployment Workflow
+- Versioning, encryption, public-access blocking, and lifecycle transitions
+- Guarded and resumable GoPro synchronization
+- Portable manifest generation and restored-sample integrity verification
+- CloudFormation, shell, and Markdown validation
 
 ### Planned Components
 
-- Lifecycle policies
-- Glacier archival tiers
-- Backup verification workflows
-- Manifest generation
 - Automated media ingestion
-- Integrity validation
 - Cost monitoring
 - Event notifications
 
@@ -63,10 +62,14 @@ lifeos-aws-archive/
 │
 ├── docs/
 │   ├── archive-strategy.md
+│   ├── change-log.md
+│   ├── media-taxonomy.md
 │   └── runbook.md
 │
 ├── scripts/
 │   ├── generate_manifest.sh
+│   ├── resume_gopro_upload.sh
+│   ├── sanitize_private_values.sh
 │   ├── sync_gopro_to_s3.sh
 │   └── verify_gopro_sync.sh
 │
@@ -127,14 +130,14 @@ aws cloudformation deploy \
 
 - [ ] Upload GoPro archive
 - [ ] Upload photo archive
-- [ ] Create file manifests
-- [ ] Verify upload integrity
+- [x] Add manifest generation tooling
+- [x] Add restored-sample integrity verification
 
 ### Phase 3 – Automation
 
-- [ ] Automated synchronization scripts
-- [ ] Lifecycle policies
-- [ ] Glacier transition
+- [x] Guarded and resumable synchronization scripts
+- [x] Lifecycle policies
+- [x] Glacier transition configuration
 - [ ] Cost reporting
 
 ### Phase 4 – Digital Organization Integration

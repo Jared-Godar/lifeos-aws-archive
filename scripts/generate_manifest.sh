@@ -32,27 +32,36 @@ echo "File list: $FILE_LIST"
 echo "SHA256 manifest: $SHA256_MANIFEST"
 echo
 
-echo "Generating file list..."
-(
-  cd "$SOURCE_DIR"
-  find . -type f | LC_ALL=C sort
-) > "$FILE_LIST"
+sorted_files() {
+  (
+    cd "$SOURCE_DIR"
+    find . -type f -print0 | LC_ALL=C sort -z
+  )
+}
 
-TOTAL_FILES="$(wc -l < "$FILE_LIST" | tr -d ' ')"
+echo "Generating file list..."
+TOTAL_FILES=0
+while IFS= read -r -d '' FILE; do
+  TOTAL_FILES=$((TOTAL_FILES + 1))
+done < <(sorted_files)
+
 echo "Files found: $TOTAL_FILES"
 echo
 
 echo "Generating SHA256 manifest..."
 COUNT=0
+: > "$FILE_LIST"
+: > "$SHA256_MANIFEST"
 
-while IFS= read -r FILE; do
+while IFS= read -r -d '' FILE; do
   COUNT=$((COUNT + 1))
   echo "[$COUNT/$TOTAL_FILES] $FILE"
+  printf '%q\n' "$FILE" >> "$FILE_LIST"
   (
     cd "$SOURCE_DIR"
-    shasum -a 256 "$FILE"
+    shasum -a 256 -- "$FILE"
   ) >> "$SHA256_MANIFEST"
-done < "$FILE_LIST"
+done < <(sorted_files)
 
 echo
 echo "Manifest generation complete."
