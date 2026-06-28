@@ -63,7 +63,10 @@ lifeos-aws-archive/
 ├── docs/
 │   ├── archive-strategy.md
 │   ├── change-log.md
+│   ├── images/
+│   │   └── trello-board.png
 │   ├── media-taxonomy.md
+│   ├── project-management.md
 │   └── runbook.md
 │
 ├── scripts/
@@ -79,6 +82,22 @@ lifeos-aws-archive/
 │
 └── README.md
 ```
+
+## Project Management Case Study
+
+The [project management case study](docs/project-management.md) documents the
+Trello workflow, label taxonomy, verified milestones, and the engineering
+decisions that keep archive operations recoverable and auditable.
+
+Current verified outcomes include:
+
+- 63 GoPro files totaling approximately 178 GiB, including a successful
+  SHA-256 restore and playback comparison
+- 318 photo-pilot files totaling 533,165,130 bytes (approximately 533 MB),
+  including successful XMP and JPEG SHA-256 restores
+- portable file inventories and SHA-256 manifests stored separately in S3
+- dry-run defaults, no-delete safeguards, restore testing, and lifecycle
+  controls
 
 ## Technology Stack
 
