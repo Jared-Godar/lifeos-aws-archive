@@ -54,5 +54,8 @@ __pycache__/
 # Python environments
 .venv/
 
+# Node dependencies
+node_modules/
+
 # Local Python version selection
 .python-version
