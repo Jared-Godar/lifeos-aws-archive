@@ -2,7 +2,7 @@
 
 | Date       | Notes                                                                 |
 | ---------- | --------------------------------------------------------------------- |
-| 2026-06-28 | Added repository linting and completed two project hardening reviews. |
+| 2026-06-28 | Added validation, hardening reviews, portfolio documentation, and an AWS budget runbook. |
 
 ---
 
@@ -12,6 +12,16 @@
 - [x] Added npm scripts and locked development dependencies.
 - [x] Integrated CloudFormation and shell validation with repository tooling.
 - [x] Added a guarded, collection-aware manifest uploader with dry-run and checksum verification.
+- [x] Documented a `$10` monthly AWS cost budget with actual and forecasted alerts.
+- [x] Added budget validation, alert-response, monthly review, and troubleshooting procedures.
+
+## Cost Management Documentation
+
+The new [AWS budget runbook](AWSbudget.md) documents the planned account-wide
+cost guardrail without representing the budget as already configured. It
+includes four email thresholds, recommends avoiding automated budget actions
+during initial adoption, and connects alerts to the recurring monthly archive
+and cost review.
 
 ## Project Review I — Completed
 

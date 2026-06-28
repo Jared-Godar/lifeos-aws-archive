@@ -44,12 +44,13 @@ The initial implementation focuses on Infrastructure-as-Code (IaC) deployment of
 - Versioning, encryption, public-access blocking, and lifecycle transitions
 - Guarded and resumable GoPro synchronization
 - Portable manifest generation and restored-sample integrity verification
+- Documented AWS budget-alert and monthly cost-review procedure
 - CloudFormation, shell, and Markdown validation
 
 ### Planned Components
 
 - Automated media ingestion
-- Cost monitoring
+- Configured AWS budget alerts and cost reporting
 - Event notifications
 
 ## Repository Structure
@@ -61,6 +62,7 @@ lifeos-aws-archive/
 │   └── lifeos-s3-archive.yaml
 │
 ├── docs/
+│   ├── AWSbudget.md
 │   ├── archive-strategy.md
 │   ├── change-log.md
 │   ├── images/
@@ -88,6 +90,11 @@ lifeos-aws-archive/
 The [project management case study](docs/project-management.md) documents the
 Trello workflow, label taxonomy, verified milestones, and the engineering
 decisions that keep archive operations recoverable and auditable.
+
+The [AWS budget runbook](docs/AWSbudget.md) defines the initial `$10` monthly
+account guardrail, actual and forecasted alert thresholds, validation steps,
+monthly reviews, and alert-response procedure. The runbook is complete; AWS
+budget creation remains an operational roadmap item.
 
 Current verified outcomes include:
 
@@ -158,7 +165,9 @@ aws cloudformation deploy \
 - [x] Guarded and resumable synchronization scripts
 - [x] Lifecycle policies
 - [x] Glacier transition configuration
-- [ ] Cost reporting
+- [x] Document AWS budget-alert setup and monthly review procedure
+- [ ] Configure AWS budget alerts
+- [ ] Add cost reporting
 
 ### Phase 4 – Digital Organization Integration
 

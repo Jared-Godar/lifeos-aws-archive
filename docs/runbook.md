@@ -53,8 +53,11 @@ lifeos-aws-archive/
 ├── cloudformation/
 │   └── lifeos-s3-archive.yaml
 ├── docs/
+│   ├── AWSbudget.md
 │   ├── archive-strategy.md
+│   ├── change-log.md
 │   ├── media-taxonomy.md
+│   ├── project-management.md
 │   └── runbook.md
 ├── scripts/
 ├── logs/
@@ -483,6 +486,29 @@ Investigate reported differences before deleting local files.
 
 ---
 
+## Cost Monitoring and Budget Alerts
+
+Use the [AWS budget runbook](AWSbudget.md) to create and operate the initial
+account-wide cost guardrail. The recommended starting configuration is a fixed,
+recurring `$10` monthly cost budget with these email notifications:
+
+- 50% actual spend
+- 80% forecasted spend
+- 80% actual spend
+- 100% actual spend
+
+The documented budget is not considered implemented until it appears in AWS
+Budgets with all four recipients and thresholds verified. Do not attach an
+automated budget action during initial adoption; alerts should trigger an
+investigation rather than automatically disrupting uploads, logging, restores,
+or CloudFormation operations.
+
+Review the budget during the monthly archive and cost review. Investigate
+alerts in Cost Explorer before changing lifecycle policies or deleting archive
+objects. AWS Budgets is delayed alerting, not a real-time spending cap.
+
+---
+
 ## Change Management
 
 All infrastructure changes should follow this process:
@@ -529,6 +555,7 @@ The archive is considered operational when:
 - Uploads complete successfully
 - Restore tests succeed
 - Documentation remains current
+- AWS budget alerts are configured and reviewed monthly
 - Cloud storage costs remain predictable
 - Important data exists in multiple locations
 - Future-you can operate the system using this runbook alone
@@ -544,3 +571,4 @@ The archive is considered operational when:
 | 2026-06-27 | Jared Godar | Added production GoPro sync and verification script workflows replacing manual sync procedures. |
 | 2026-06-28 | Jared Godar | Hardened upload checksums, locking, failure handling, manifest portability, and restore verification. |
 | 2026-06-28 | Jared Godar | Updated the canonical workflow to use guarded repository scripts and expanded CI coverage. |
+| 2026-06-28 | Jared Godar | Added the AWS budget setup, alert response, validation, and monthly cost-review runbook. |

@@ -100,9 +100,17 @@ Versioning, encryption, public-access blocking, retained resources, and
 noncurrent-version transitions provide defense in depth while recurring reviews
 keep cost and recoverability visible.
 
+### Budget monitoring
+
+The [AWS budget runbook](AWSbudget.md) defines a fixed monthly account
+guardrail, actual and forecasted email alerts, an investigation workflow, and a
+recurring monthly review. Budget actions remain disabled initially so cost
+alerts cannot interrupt archive or recovery operations automatically.
+
 ## Next Milestone
 
-The next operational step is a coherent 5–20 GiB production photo batch. It
+The next infrastructure step is to configure and validate the documented AWS
+budget. The next archive step is a coherent 5–20 GiB production photo batch. It
 will reuse the pilot workflow: export originals and sidecars, preview, upload,
 reconcile, restore, checksum, inspect, generate manifests, and observe a
 cooling-off period before any storage-reduction decision.

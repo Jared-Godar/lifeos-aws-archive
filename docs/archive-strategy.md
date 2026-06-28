@@ -261,6 +261,8 @@ Target restoration time:
 
 Cost should be controlled through:
 
+- Configuring the account-wide guardrail in the [AWS budget runbook](AWSbudget.md)
+- Monitoring actual and forecasted budget alerts
 - Lifecycle policies
 - Avoiding unnecessary duplicate uploads
 - Using manifests before re-uploading large collections
@@ -274,6 +276,7 @@ Large uploads should be tested on small folders before bulk media transfer.
 Monthly:
 
 - Review local storage pressure
+- Review actual and forecasted AWS spend against the monthly budget
 - Review pending archive candidates
 - Upload newly finalized files
 - Confirm recent uploads
@@ -311,7 +314,8 @@ Planned enhancements:
 - Automated manifest generation
 - Upload helper scripts
 - Restore helper scripts
-- Cost-reporting workflow
+- Configure the documented AWS budget alerts
+- Cost-reporting workflow beyond the initial monthly budget
 - CloudWatch or S3 inventory integration
 - Metadata extraction
 - Searchable archive index
