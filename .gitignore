@@ -35,6 +35,10 @@ replacements.txt
 filter-repo/
 *.bak
 
+# Private project-management exports
+trello-exports/
+*-trello-export.json
+
 # macOS / editor noise
 .DS_Store
 .AppleDouble
