@@ -56,7 +56,7 @@ for arg in "$@"; do
 done
 
 DEST="s3://${BUCKET}/${DEST_PREFIX%/}/"
-LOCK_FILE="/tmp/lifeos_gopro_s3_sync.lock"
+LOCK_DIR="/tmp/lifeos_gopro_s3_sync.lock"
 
 timestamp() {
   date +"%Y-%m-%d %H:%M:%S"
@@ -70,10 +70,8 @@ section() {
 }
 
 cleanup() {
-  rm -f "$LOCK_FILE"
+  rmdir "$LOCK_DIR" 2>/dev/null || true
 }
-
-trap cleanup EXIT
 
 section "LifeOS GoPro S3 Sync"
 echo "Timestamp:      $(timestamp)"
@@ -85,15 +83,14 @@ echo "Log directory:  $LOG_DIR"
 
 section "Preflight Checks"
 
-if [[ -e "$LOCK_FILE" ]]; then
-  echo "ERROR: Lock file exists: $LOCK_FILE"
+if ! mkdir "$LOCK_DIR" 2>/dev/null; then
+  echo "ERROR: Lock exists: $LOCK_DIR"
   echo "Another sync may already be running."
-  echo "If you are certain no sync is active, remove it:"
-  echo "  rm -f $LOCK_FILE"
+  echo "Remove the lock only after confirming no sync is active."
   exit 1
 fi
 
-touch "$LOCK_FILE"
+trap cleanup EXIT
 
 if [[ ! -d "$SOURCE_DIR" ]]; then
   echo "ERROR: Source directory does not exist:"
@@ -168,9 +165,9 @@ LOG_FILE="$LOG_DIR/gopro_sync_$(date +%Y%m%d_%H%M%S).log"
 echo "Logging to: $LOG_FILE"
 
 if [[ "$SHOW_PROGRESS" == true ]]; then
-  aws s3 sync "$SOURCE_DIR" "$DEST" 2>&1 | tee "$LOG_FILE"
+  aws s3 sync "$SOURCE_DIR" "$DEST" --checksum-algorithm SHA256 2>&1 | tee "$LOG_FILE"
 else
-  aws s3 sync "$SOURCE_DIR" "$DEST" --no-progress 2>&1 | tee "$LOG_FILE"
+  aws s3 sync "$SOURCE_DIR" "$DEST" --checksum-algorithm SHA256 --no-progress 2>&1 | tee "$LOG_FILE"
 fi
 
 section "Post-Upload Remote Status"
@@ -186,12 +183,14 @@ echo "Remote bytes after sync: $REMOTE_BYTES_AFTER"
 section "Final Dry Run Verification"
 
 FINAL_DRYRUN="$(aws s3 sync "$SOURCE_DIR" "$DEST" --dryrun)"
+VERIFICATION_FAILED=false
 
 if [[ -z "$FINAL_DRYRUN" ]]; then
   echo "PASS: Final dry run shows no remaining uploads."
 else
-  echo "WARNING: Final dry run found remaining upload actions:"
+  echo "FAIL: Final dry run found remaining upload actions:"
   echo "$FINAL_DRYRUN"
+  VERIFICATION_FAILED=true
 fi
 
 section "File Count Verification"
@@ -202,13 +201,21 @@ echo "Remote files: $REMOTE_FILES_AFTER"
 if [[ "$LOCAL_FILES" == "$REMOTE_FILES_AFTER" ]]; then
   echo "PASS: Local and remote file counts match."
 else
-  echo "WARNING: Local and remote file counts do not match."
+  echo "FAIL: Local and remote file counts do not match."
+  VERIFICATION_FAILED=true
 fi
 
 if [[ "$REMOTE_FILES_AFTER" == "$EXPECTED_FILES" ]]; then
   echo "PASS: Remote file count matches expected count."
 else
-  echo "WARNING: Remote file count does not match expected count."
+  echo "FAIL: Remote file count does not match expected count."
+  VERIFICATION_FAILED=true
+fi
+
+if [[ "$VERIFICATION_FAILED" == true ]]; then
+  section "Verification Failed"
+  echo "Upload verification failed. Review the results above."
+  exit 1
 fi
 
 section "Complete"

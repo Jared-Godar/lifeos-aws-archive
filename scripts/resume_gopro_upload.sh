@@ -74,7 +74,7 @@ print_header "Starting / Resuming Upload"
 LOG_FILE="$LOG_DIR/gopro_sync_$(date +%Y%m%d_%H%M%S).log"
 echo "Logging to: $LOG_FILE"
 
-aws s3 sync "$SOURCE_DIR" "$DEST" --no-progress 2>&1 | tee "$LOG_FILE"
+aws s3 sync "$SOURCE_DIR" "$DEST" --checksum-algorithm SHA256 --no-progress 2>&1 | tee "$LOG_FILE"
 
 print_header "Post-Upload Remote Status"
 aws s3 ls "$DEST" --recursive --summarize | tail -2
@@ -88,17 +88,20 @@ echo "Remote bytes after sync: $REMOTE_BYTES_AFTER"
 print_header "Verification Summary"
 echo "Local files:  $LOCAL_FILES"
 echo "Remote files: $REMOTE_FILES_AFTER"
+VERIFICATION_FAILED=false
 
 if [[ "$LOCAL_FILES" == "$REMOTE_FILES_AFTER" ]]; then
   echo "PASS: Local and remote file counts match."
 else
-  echo "WARNING: Local and remote file counts do not match."
+  echo "FAIL: Local and remote file counts do not match."
+  VERIFICATION_FAILED=true
 fi
 
 if [[ "$REMOTE_FILES_AFTER" == "$TOTAL_EXPECTED_FILES" ]]; then
   echo "PASS: Remote file count matches expected count."
 else
-  echo "WARNING: Remote file count does not match expected count."
+  echo "FAIL: Remote file count does not match expected count."
+  VERIFICATION_FAILED=true
 fi
 
 print_header "Final Dry Run Check"
@@ -107,8 +110,15 @@ FINAL_DRYRUN="$(aws s3 sync "$SOURCE_DIR" "$DEST" --dryrun)"
 if [[ -z "$FINAL_DRYRUN" ]]; then
   echo "PASS: Final dry run shows no remaining uploads."
 else
-  echo "WARNING: Final dry run found remaining upload actions:"
+  echo "FAIL: Final dry run found remaining upload actions:"
   echo "$FINAL_DRYRUN"
+  VERIFICATION_FAILED=true
+fi
+
+if [[ "$VERIFICATION_FAILED" == true ]]; then
+  print_header "Verification Failed"
+  echo "Upload verification failed. Review the results above."
+  exit 1
 fi
 
 print_header "Complete"

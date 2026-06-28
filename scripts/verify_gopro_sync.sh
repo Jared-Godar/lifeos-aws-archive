@@ -12,7 +12,7 @@ set -euo pipefail
 #   - Local file count
 #   - Remote object count
 #   - Final dry-run sync status
-#   - Optional restore test
+#   - Optional restore and SHA-256 integrity test
 #
 # Usage:
 #   scripts/verify_gopro_sync.sh
@@ -155,9 +155,15 @@ if [[ "$RESTORE_SAMPLE" == true ]]; then
 
   mkdir -p "$RESTORE_DIR"
 
-  SAMPLE_KEY="$(aws s3 ls "$DEST" --recursive | awk '{print $4}' | sort | head -1)"
+  SAMPLE_KEY="$(
+    aws s3api list-objects-v2 \
+      --bucket "$BUCKET" \
+      --prefix "${DEST_PREFIX%/}/" \
+      --query 'sort_by(Contents, &Size)[0].Key' \
+      --output text
+  )"
 
-  if [[ -z "$SAMPLE_KEY" ]]; then
+  if [[ -z "$SAMPLE_KEY" || "$SAMPLE_KEY" == "None" ]]; then
     echo "FAIL: Could not identify sample object."
     exit 1
   fi
@@ -168,7 +174,19 @@ if [[ "$RESTORE_SAMPLE" == true ]]; then
   echo "Sample key:  $SAMPLE_KEY"
   echo "Restore to:   $RESTORE_PATH"
 
-  aws s3 cp "s3://${BUCKET}/${SAMPLE_KEY}" "$RESTORE_PATH"
+  LOCAL_SAMPLE_RELATIVE="${SAMPLE_KEY#"${DEST_PREFIX%/}"/}"
+  LOCAL_SAMPLE_PATH="$SOURCE_DIR/$LOCAL_SAMPLE_RELATIVE"
+
+  if [[ ! -f "$LOCAL_SAMPLE_PATH" ]]; then
+    echo "FAIL: Matching local sample does not exist:"
+    echo "$LOCAL_SAMPLE_PATH"
+    exit 1
+  fi
+
+  aws s3 cp \
+    "s3://${BUCKET}/${SAMPLE_KEY}" \
+    "$RESTORE_PATH" \
+    --checksum-mode ENABLED
 
   if [[ -f "$RESTORE_PATH" ]]; then
     echo "PASS: Restore sample downloaded successfully."
@@ -177,14 +195,32 @@ if [[ "$RESTORE_SAMPLE" == true ]]; then
     echo "FAIL: Restore sample was not downloaded."
     exit 1
   fi
+
+  LOCAL_SHA256="$(shasum -a 256 "$LOCAL_SAMPLE_PATH" | awk '{print $1}')"
+  RESTORED_SHA256="$(shasum -a 256 "$RESTORE_PATH" | awk '{print $1}')"
+
+  echo "Local SHA-256:    $LOCAL_SHA256"
+  echo "Restored SHA-256: $RESTORED_SHA256"
+
+  if [[ "$LOCAL_SHA256" == "$RESTORED_SHA256" ]]; then
+    echo "PASS: Restored sample matches the local SHA-256."
+  else
+    echo "FAIL: Restored sample does not match the local SHA-256."
+    exit 1
+  fi
 else
   section "Restore Sample Skipped"
-  echo "Run with --restore-sample to download one object for manual playback/checksum review."
+  echo "Run with --restore-sample before deleting local files."
 fi
 
 section "Verification Complete"
 
 echo "Timestamp: $(timestamp)"
 echo "PASS: GoPro local source and S3 archive are synchronized."
+if [[ "$RESTORE_SAMPLE" == true ]]; then
+  echo "PASS: Restored sample passed S3 and local SHA-256 validation."
+else
+  echo "NOTICE: Restore integrity was not tested."
+fi
 echo
-echo "Do not delete local files until restore playback and checksum validation are complete."
+echo "Do not delete local files until restore integrity validation is complete."

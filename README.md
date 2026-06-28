@@ -109,7 +109,8 @@ Deploy the stack:
 ```bash
 aws cloudformation deploy \
   --template-file cloudformation/lifeos-s3-archive.yaml \
-  --stack-name lifeos-s3-archive
+  --stack-name lifeos-s3-archive \
+  --parameter-overrides BucketName=BUCKET_NAME
 ```
 
 ## Roadmap

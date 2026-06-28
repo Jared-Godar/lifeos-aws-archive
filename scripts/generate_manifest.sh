@@ -18,7 +18,9 @@ if [[ ! -d "$SOURCE_DIR" ]]; then
   exit 1
 fi
 
+SOURCE_DIR="$(cd "$SOURCE_DIR" && pwd -P)"
 mkdir -p "$OUTPUT_DIR"
+OUTPUT_DIR="$(cd "$OUTPUT_DIR" && pwd -P)"
 
 TIMESTAMP="$(date +"%Y%m%d_%H%M%S")"
 FILE_LIST="$OUTPUT_DIR/${LABEL}_file_list_${TIMESTAMP}.txt"
@@ -31,7 +33,10 @@ echo "SHA256 manifest: $SHA256_MANIFEST"
 echo
 
 echo "Generating file list..."
-find "$SOURCE_DIR" -type f | sort > "$FILE_LIST"
+(
+  cd "$SOURCE_DIR"
+  find . -type f | LC_ALL=C sort
+) > "$FILE_LIST"
 
 TOTAL_FILES="$(wc -l < "$FILE_LIST" | tr -d ' ')"
 echo "Files found: $TOTAL_FILES"
@@ -43,10 +48,15 @@ COUNT=0
 while IFS= read -r FILE; do
   COUNT=$((COUNT + 1))
   echo "[$COUNT/$TOTAL_FILES] $FILE"
-  shasum -a 256 "$FILE" >> "$SHA256_MANIFEST"
+  (
+    cd "$SOURCE_DIR"
+    shasum -a 256 "$FILE"
+  ) >> "$SHA256_MANIFEST"
 done < "$FILE_LIST"
 
 echo
 echo "Manifest generation complete."
 echo "File list: $FILE_LIST"
 echo "SHA256 manifest: $SHA256_MANIFEST"
+echo "Verify a restored collection from its root with:"
+echo "  shasum -a 256 -c \"$SHA256_MANIFEST\""

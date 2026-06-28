@@ -48,23 +48,9 @@ Resources:
 
       LifecycleConfiguration:
         Rules:
-          - Id: MediaStandardToGlacier
+          - Id: PhotosStandardToGlacier
             Status: Enabled
-            Prefix: media/
-            Transitions:
-              - StorageClass: GLACIER_IR
-                TransitionInDays: 90
-              - StorageClass: DEEP_ARCHIVE
-                TransitionInDays: 365
-            NoncurrentVersionTransitions:
-              - StorageClass: DEEP_ARCHIVE
-                TransitionInDays: 90
-            AbortIncompleteMultipartUpload:
-              DaysAfterInitiation: 7
-
-          - Id: CameraDumpsStandardToGlacier
-            Status: Enabled
-            Prefix: media/Camera-Dumps/
+            Prefix: photos/
             Transitions:
               - StorageClass: GLACIER_IR
                 TransitionInDays: 90
@@ -74,9 +60,33 @@ Resources:
               - StorageClass: DEEP_ARCHIVE
                 TransitionInDays: 90
 
-          - Id: DocumentsArchiveLifecycle
+          - Id: VideoStandardToGlacier
             Status: Enabled
-            Prefix: documents-archive/
+            Prefix: video/
+            Transitions:
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 90
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 365
+            NoncurrentVersionTransitions:
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+
+          - Id: AudioStandardToGlacier
+            Status: Enabled
+            Prefix: audio/
+            Transitions:
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 90
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 365
+            NoncurrentVersionTransitions:
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+
+          - Id: DocumentsLifecycle
+            Status: Enabled
+            Prefix: documents/
             Transitions:
               - StorageClass: STANDARD_IA
                 TransitionInDays: 30
@@ -88,9 +98,23 @@ Resources:
               - StorageClass: DEEP_ARCHIVE
                 TransitionInDays: 90
 
-          - Id: GoogleDriveArchiveLifecycle
+          - Id: ObsidianLifecycle
             Status: Enabled
-            Prefix: google-drive-archive/
+            Prefix: obsidian/
+            Transitions:
+              - StorageClass: STANDARD_IA
+                TransitionInDays: 30
+              - StorageClass: GLACIER_IR
+                TransitionInDays: 90
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 365
+            NoncurrentVersionTransitions:
+              - StorageClass: DEEP_ARCHIVE
+                TransitionInDays: 90
+
+          - Id: LegacyArchiveLifecycle
+            Status: Enabled
+            Prefix: archive/
             Transitions:
               - StorageClass: STANDARD_IA
                 TransitionInDays: 30
@@ -146,7 +170,7 @@ Outputs:
 
   ExampleGoProSyncCommand:
     Description: Example GoPro upload command.
-    Value: !Sub "aws s3 sync ~/Movies/GoPro s3://${BucketName}/media/GoPro --storage-class STANDARD"
+    Value: !Sub "aws s3 sync ~/Movies/GoPro s3://${BucketName}/video/gopro/ --storage-class STANDARD"
 
   ExampleManifestUploadCommand:
     Description: Example manifest upload command.

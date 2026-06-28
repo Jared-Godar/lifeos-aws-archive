@@ -140,7 +140,7 @@ Deploy stack:
 aws cloudformation deploy \
   --template-file cloudformation/lifeos-s3-archive.yaml \
   --stack-name lifeos-s3-archive \
-  --capabilities CAPABILITY_NAMED_IAM
+  --parameter-overrides BucketName=BUCKET_NAME
 ```
 
 Monitor progress:
@@ -312,26 +312,25 @@ aws s3 ls \
 
 Counts should be consistent.
 
+Run the repository verifier with a restored checksum sample before considering the archive complete:
+
+```bash
+scripts/verify_gopro_sync.sh --restore-sample
+```
+
+The command must report matching local and restored SHA-256 values before local deletion.
+
 ---
 
 ## Manifest Generation
 
-Generate inventory:
+Generate a portable file inventory and SHA-256 manifest:
 
 ```bash
-find ~/Movies/GoPro \
-  -type f \
-  > manifests/gopro-file-list.txt
+scripts/generate_manifest.sh ~/Movies/GoPro manifests gopro
 ```
 
-Generate checksums:
-
-```bash
-find ~/Movies/GoPro \
-  -type f \
-  -exec shasum -a 256 {} \; \
-  > manifests/gopro-sha256.txt
-```
+Manifest paths are relative to the collection root so the checksums remain usable after restoration to another location.
 
 Upload manifests:
 
