@@ -1,3 +1,5 @@
+# yaml-language-server: $schema=../.vscode/cloudformation.schema.json
+# cfn-lint: disable=S3_BUCKET_LOGGING_ENABLED
 AWSTemplateFormatVersion: "2010-09-09"
 Description: LifeOS S3 archive bucket for media, documents, manifests, and backup staging.
 
