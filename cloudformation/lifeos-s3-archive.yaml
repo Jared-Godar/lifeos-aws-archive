@@ -1,5 +1,4 @@
 # yaml-language-server: $schema=../.vscode/cloudformation.schema.json
-# cfn-lint: disable=S3_BUCKET_LOGGING_ENABLED
 AWSTemplateFormatVersion: "2010-09-09"
 Description: LifeOS S3 archive bucket for media, documents, manifests, and backup staging.
 
@@ -9,12 +8,40 @@ Parameters:
     Description: Globally unique S3 bucket name, e.g. lifeos-archive-example
 
 Resources:
+  LifeOSArchiveLogBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "${BucketName}-logs"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Sub "${BucketName}-logs"
+        LogFilePrefix: self-logs/
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+
   LifeOSArchiveBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
     UpdateReplacePolicy: Retain
     Properties:
       BucketName: !Ref BucketName
+
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LifeOSArchiveLogBucket
+        LogFilePrefix: logs/
 
       Tags:
         - Key: Project
@@ -169,6 +196,10 @@ Outputs:
   BucketArn:
     Description: Created S3 archive bucket ARN.
     Value: !GetAtt LifeOSArchiveBucket.Arn
+
+  LogBucketName:
+    Description: S3 access log bucket name.
+    Value: !Ref LifeOSArchiveLogBucket
 
   ExampleGoProSyncCommand:
     Description: Example GoPro upload command.
