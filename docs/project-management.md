@@ -111,6 +111,7 @@ alerts cannot interrupt archive or recovery operations automatically.
 
 The next infrastructure step is to configure and validate the documented AWS
 budget. The next archive step is a coherent 5–20 GiB production photo batch. It
-will reuse the pilot workflow: export originals and sidecars, preview, upload,
-reconcile, restore, checksum, inspect, generate manifests, and observe a
-cooling-off period before any storage-reduction decision.
+will run through `scripts/archive_photo_batch.sh`, which applies the pilot
+workflow consistently: standardize, preview, upload, reconcile, restore,
+checksum, inspect, generate manifests, record evidence, and schedule a
+cooling-off review before any storage-reduction decision.

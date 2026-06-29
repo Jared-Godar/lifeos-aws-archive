@@ -270,6 +270,9 @@ Cost should be controlled through:
 - Reviewing storage reports periodically
 
 Large uploads should be tested on small folders before bulk media transfer.
+Production Apple Photos exports should use `scripts/archive_photo_batch.sh` so
+each batch receives the same naming, upload, reconciliation, dual-restore,
+manifest, verification-record, and cooling-off workflow.
 
 ## Operational Cadence
 

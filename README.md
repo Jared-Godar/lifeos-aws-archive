@@ -43,6 +43,7 @@ The initial implementation focuses on Infrastructure-as-Code (IaC) deployment of
 - AWS CLI Deployment Workflow
 - Versioning, encryption, public-access blocking, and lifecycle transitions
 - Guarded and resumable GoPro synchronization
+- Interactive production photo-batch archival and cooling-off scheduling
 - Portable manifest generation and restored-sample integrity verification
 - Documented AWS budget-alert and monthly cost-review procedure
 - CloudFormation, shell, and Markdown validation
@@ -72,12 +73,16 @@ lifeos-aws-archive/
 │   └── runbook.md
 │
 ├── scripts/
+│   ├── archive_photo_batch.sh
 │   ├── generate_manifest.sh
 │   ├── resume_gopro_upload.sh
 │   ├── sanitize_private_values.sh
 │   ├── sync_gopro_to_s3.sh
 │   ├── upload_manifests_to_s3.sh
 │   └── verify_gopro_sync.sh
+│
+├── tests/
+│   └── test_archive_photo_batch.sh
 │
 ├── logs/
 │   └── .gitkeep
@@ -157,6 +162,7 @@ aws cloudformation deploy \
 
 - [ ] Upload GoPro archive
 - [ ] Upload photo archive
+- [x] Add guarded production photo-batch orchestration
 - [x] Add manifest generation tooling
 - [x] Add restored-sample integrity verification
 

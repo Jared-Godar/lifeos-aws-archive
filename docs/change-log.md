@@ -14,6 +14,21 @@
 - [x] Added a guarded, collection-aware manifest uploader with dry-run and checksum verification.
 - [x] Documented a `$10` monthly AWS cost budget with actual and forecasted alerts.
 - [x] Added budget validation, alert-response, monthly review, and troubleshooting procedures.
+- [x] Added an interactive production photo-batch archive helper.
+- [x] Added independent count, byte, final dry-run, XMP, media, and visual verification.
+- [x] Added private batch records and iCalendar cooling-off reminders.
+
+## Production Photo Batch Orchestration
+
+`scripts/archive_photo_batch.sh` now coordinates the complete batch lifecycle:
+folder selection and naming, a visible dry run, an explicit upload checkpoint,
+checksum-backed upload, independent reconciliation, XMP and media restores,
+visual comparison, batch-specific manifests, verification evidence, and a
+calendar reminder. The helper never deletes source files and rejects direct
+uploads of Apple Photos library packages.
+
+`tests/test_archive_photo_batch.sh` exercises the workflow end to end with
+local command mocks and performs no live S3 upload.
 
 ## Cost Management Documentation
 

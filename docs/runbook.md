@@ -322,6 +322,58 @@ The command must report matching local and restored SHA-256 values before local 
 
 ---
 
+## Production Photo Batch Workflow
+
+Use the interactive helper for exported Apple Photos batches:
+
+```bash
+scripts/archive_photo_batch.sh
+```
+
+The macOS folder picker selects the exported batch. The helper proposes a
+lowercase, hyphenated batch label and uses it consistently for:
+
+- The standardized local folder name
+- The S3 prefix under `photos/ingest/`
+- The batch-specific manifest collection under `manifests/`
+- The private verification record
+- The cooling-off calendar event
+
+To select the folder or label explicitly:
+
+```bash
+scripts/archive_photo_batch.sh \
+  --source "$HOME/Pictures/Photo Exports/2025 Family" \
+  --label 2025-family \
+  --cooloff-days 7
+```
+
+The helper performs this guarded sequence:
+
+1. Rejects Apple Photos library packages and requires an exported folder.
+2. Confirms any local folder rename before changing it.
+3. Requires at least one XMP sidecar and one supported media file.
+4. Displays the source, counts, bytes, S3 prefix, sample files, and manifest destination.
+5. Runs the existing guarded upload in dry-run mode.
+6. Requires an explicit `y` confirmation before uploading.
+7. Executes the checksum-backed upload and independently reconciles counts, bytes, and the final dry run.
+8. Restores and compares SHA-256 values for both an XMP and media sample.
+9. Opens the original and restored media and requires visual confirmation.
+10. Generates and uploads batch-specific manifests.
+11. Writes a private Markdown verification record and `.ics` cooling-off reminder under `logs/photo-batches/`.
+
+The helper does not delete local files or Apple Photos originals. Import the
+generated reminder with the command printed at completion. A calendar reminder
+is a review checkpoint, not automatic deletion authorization.
+
+Run its mocked end-to-end test without contacting AWS:
+
+```bash
+tests/test_archive_photo_batch.sh
+```
+
+---
+
 ## Manifest Generation
 
 Generate a portable file inventory and SHA-256 manifest:
@@ -572,3 +624,4 @@ The archive is considered operational when:
 | 2026-06-28 | Jared Godar | Hardened upload checksums, locking, failure handling, manifest portability, and restore verification. |
 | 2026-06-28 | Jared Godar | Updated the canonical workflow to use guarded repository scripts and expanded CI coverage. |
 | 2026-06-28 | Jared Godar | Added the AWS budget setup, alert response, validation, and monthly cost-review runbook. |
+| 2026-06-28 | Jared Godar | Added guarded production photo-batch orchestration, dual restore checks, private verification records, and cooling-off reminders. |
