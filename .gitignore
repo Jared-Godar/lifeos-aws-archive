@@ -66,3 +66,6 @@ node_modules/
 
 # Local Python version selection
 .python-version
+
+# VS Code workspace file
+*.code-workspace
