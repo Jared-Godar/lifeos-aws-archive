@@ -1,7 +1,7 @@
 # Change Log
 
-| Date       | Notes                                                                 |
-| ---------- | --------------------------------------------------------------------- |
+| Date       | Notes                                                                                    |
+| ---------- | ---------------------------------------------------------------------------------------- |
 | 2026-06-28 | Added validation, hardening reviews, portfolio documentation, and an AWS budget runbook. |
 
 ---
@@ -14,21 +14,6 @@
 - [x] Added a guarded, collection-aware manifest uploader with dry-run and checksum verification.
 - [x] Documented a `$10` monthly AWS cost budget with actual and forecasted alerts.
 - [x] Added budget validation, alert-response, monthly review, and troubleshooting procedures.
-- [x] Added an interactive production photo-batch archive helper.
-- [x] Added independent count, byte, final dry-run, XMP, media, and visual verification.
-- [x] Added private batch records and iCalendar cooling-off reminders.
-
-## Production Photo Batch Orchestration
-
-`scripts/archive_photo_batch.sh` now coordinates the complete batch lifecycle:
-folder selection and naming, a visible dry run, an explicit upload checkpoint,
-checksum-backed upload, independent reconciliation, XMP and media restores,
-visual comparison, batch-specific manifests, verification evidence, and a
-calendar reminder. The helper never deletes source files and rejects direct
-uploads of Apple Photos library packages.
-
-`tests/test_archive_photo_batch.sh` exercises the workflow end to end with
-local command mocks and performs no live S3 upload.
 
 ## Cost Management Documentation
 
@@ -268,3 +253,124 @@ COLLECTION=photos scripts/upload_manifests_to_s3.sh --execute
 ```
 
 ---
+
+## Next Steps
+
+> 20260929
+
+### Before scaling
+
+- [ ] Create the AWS budget.
+- [ ] Verify it appears correctly the following day.
+- [ ] Deploy the pending CloudFormation updates.
+- [ ] Validate encryption, versioning, public-access blocking, TLS enforcement, logging, and lifecycle rules.
+
+### First production batch
+
+- [ ] Choose one coherent album or year totaling 5–20 GiB.
+- [ ] Export unmodified originals
+- [ ] Include XMP sidecars
+- [ ] Use a unique folder, such as:
+
+```bash
+`~/Pictures/Photo Exports/2025-family`
+```
+
+- [ ] Use a matching S3 prefix:
+
+```bash
+photos/ingest/2025-family/
+```
+
+> Do not upload the Photos Library.photoslibrary package directly.
+
+### Execute the proven workflow
+
+- [ ] Count and inspect local files.
+- [ ] Run the upload dry run.
+- [ ] Execute the upload.
+- [ ] Compare local and remote counts.
+- [ ] Confirm the final dry run is empty.
+- [ ] Restore an XMP file.
+- [ ] Restore and visually inspect a JPEG or video.
+- [ ] Confirm SHA-256 hashes match.
+- [ ] Generate batch-specific manifests.
+- [ ] Upload the manifests.
+- [ ] Record the result in Trello.
+- [ ] Use a distinct manifest label such as:
+
+```bash
+scripts/generate_manifest.sh \
+  "$HOME/Pictures/Photo Exports/2025-family" \
+  manifests \
+  photos_2025_family
+```
+
+```bash
+COLLECTION=photos_2025_family scripts/upload_manifests_to_s3.sh
+COLLECTION=photos_2025_family scripts/upload_manifests_to_s3.sh --execute
+```
+
+### After validation
+
+- [ ] Keep the local batch for 3–7 days.
+- [ ] Before deleting anything from Apple Photos, confirm you understand the iCloud deletion behavior and preferably retain another independent copy.
+- [ ] Deleting only the exported folder does not reduce the Photos library.
+- [ ] Repeat this process batch-by-batch, reviewing AWS costs after the first two production uploads.
+
+---
+
+## Execution Order
+
+> Budget → CloudFormation Deployment → Security Validation → First Production Batch
+
+---
+
+## New Feature: `$[archive_photo_batch.sh`
+
+- Interactive Run
+
+```bash
+scripts/archive_photo_batch.sh
+```
+
+- Explicit Run
+
+```bash
+scripts/archive_photo_batch.sh \
+  --source "$HOME/Pictures/Photo Exports/2025 Family" \
+  --label 2025-family \
+  --cooloff-days 7
+```
+
+- It handles:
+  - macOS folder selection
+  - Confirmed standardized folder rename
+  - Standard S3 and manifest prefixes
+  - Dry run and explicit upload checkpoint
+  - Count, byte, and final dry-run reconciliation
+  - XMP and media restore/checksum validation
+  - Original/restored media opening and visual confirmation
+  - Manifest generation and upload
+  - Private verification record
+  - ICS cooling-off reminder
+  - No automatic deletion
+
+Added a mocked end-to-end test and updated all relevant documentation. No live upload was performed. All validation checks pass.
+
+### AUTOMATED TEST
+
+- The automated test creates a disposable two-file photo batch containing:
+  - `photo.jpg`
+  - `photo.xmp`
+- It mocks AWS, upload scripts, and file opening, then cleans everything afterward. Run:
+
+```bash
+tests/test_archive_photo_batch.sh
+```
+
+- Expected Result:
+
+```bash
+
+```
