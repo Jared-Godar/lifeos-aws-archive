@@ -2,7 +2,19 @@
 
 | Date       | Notes                                                                                    |
 | ---------- | ---------------------------------------------------------------------------------------- |
+| 2026-06-29 | Added unified repository validation and aligned CI with deployable templates.            |
 | 2026-06-28 | Added validation, hardening reviews, portfolio documentation, and an AWS budget runbook. |
+
+---
+
+## 2026-06-29
+
+- [x] Added a single local validation entrypoint for CloudFormation, shell, and Markdown checks.
+- [x] Limited CloudFormation linting to the deployable archive template in CI and local validation.
+- [x] Extended ShellCheck coverage to production scripts and test scripts.
+- [x] Preserved guarded sync and manifest upload commands in CloudFormation outputs.
+- [x] Hardened restored-sample handling for temporary files and nested object paths.
+- [x] Added checksum-backed test upload and restore examples to the runbook.
 
 ---
 

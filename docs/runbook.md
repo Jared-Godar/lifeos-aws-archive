@@ -211,7 +211,8 @@ Upload:
 ```bash
 aws s3 sync \
   test-data/ \
-  s3://BUCKET_NAME/test-data/
+  s3://BUCKET_NAME/test-data/ \
+  --checksum-algorithm SHA256
 ```
 
 Verify:
@@ -236,13 +237,15 @@ Restore test file:
 ```bash
 aws s3 cp \
   s3://BUCKET_NAME/test-data/hello.txt \
-  restored.txt
+  restored.txt \
+  --checksum-mode ENABLED
 ```
 
-Verify contents:
+Verify contents and checksum:
 
 ```bash
 cat restored.txt
+shasum -a 256 test-data/hello.txt restored.txt
 ```
 
 Expected result:
@@ -514,12 +517,12 @@ aws cloudformation describe-stack-events \
 Resume safely:
 
 ```bash
-aws s3 sync \
-  SOURCE \
-  DESTINATION
+BUCKET=BUCKET_NAME scripts/resume_gopro_upload.sh
 ```
 
-Sync only transfers missing or changed files.
+The resume wrapper delegates to the guarded sync workflow so interrupted
+uploads retain the shared lock, checksum settings, logging, and strict
+post-upload checks.
 
 ---
 
@@ -528,10 +531,7 @@ Sync only transfers missing or changed files.
 Re-run:
 
 ```bash
-aws s3 sync \
-  SOURCE \
-  DESTINATION \
-  --dryrun
+BUCKET=BUCKET_NAME scripts/verify_gopro_sync.sh --restore-sample
 ```
 
 Investigate reported differences before deleting local files.

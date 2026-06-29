@@ -27,10 +27,10 @@ jobs:
         run: pip install cfn-lint==1.52.0 shellcheck-py==0.11.0.1
 
       - name: Validate CloudFormation templates
-        run: cfn-lint cloudformation/*.yaml
+        run: cfn-lint cloudformation/lifeos-s3-archive.yaml
 
       - name: Validate shell scripts
-        run: shellcheck scripts/*.sh
+        run: shellcheck scripts/*.sh tests/*.sh
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

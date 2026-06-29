@@ -79,6 +79,7 @@ lifeos-aws-archive/
 │   ├── sanitize_private_values.sh
 │   ├── sync_gopro_to_s3.sh
 │   ├── upload_manifests_to_s3.sh
+│   ├── validate_repo.sh
 │   └── verify_gopro_sync.sh
 │
 ├── tests/
@@ -137,6 +138,12 @@ Validate the CloudFormation template:
 ```bash
 aws cloudformation validate-template \
   --template-body file://cloudformation/lifeos-s3-archive.yaml
+```
+
+Run the complete local repository validation suite:
+
+```bash
+uv run scripts/validate_repo.sh
 ```
 
 Deploy the stack:

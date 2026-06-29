@@ -145,10 +145,13 @@ fi
 
 section "Remote Object Sample"
 
-aws s3 ls "$DEST" --recursive > /tmp/gopro_remote_objects.txt
-head -5 /tmp/gopro_remote_objects.txt
+REMOTE_OBJECTS_FILE="$(mktemp "${TMPDIR:-/tmp}/gopro_remote_objects.XXXXXX")"
+trap 'rm -f "$REMOTE_OBJECTS_FILE"' EXIT
+
+aws s3 ls "$DEST" --recursive > "$REMOTE_OBJECTS_FILE"
+head -5 "$REMOTE_OBJECTS_FILE"
 echo "..."
-tail -5 /tmp/gopro_remote_objects.txt
+tail -5 "$REMOTE_OBJECTS_FILE"
 
 if [[ "$RESTORE_SAMPLE" == true ]]; then
   section "Restore Sample Test"
@@ -168,20 +171,20 @@ if [[ "$RESTORE_SAMPLE" == true ]]; then
     exit 1
   fi
 
-  SAMPLE_NAME="$(basename "$SAMPLE_KEY")"
-  RESTORE_PATH="$RESTORE_DIR/$SAMPLE_NAME"
+  LOCAL_SAMPLE_RELATIVE="${SAMPLE_KEY#"${DEST_PREFIX%/}"/}"
+  LOCAL_SAMPLE_PATH="$SOURCE_DIR/$LOCAL_SAMPLE_RELATIVE"
+  RESTORE_PATH="$RESTORE_DIR/$LOCAL_SAMPLE_RELATIVE"
 
   echo "Sample key:  $SAMPLE_KEY"
   echo "Restore to:   $RESTORE_PATH"
-
-  LOCAL_SAMPLE_RELATIVE="${SAMPLE_KEY#"${DEST_PREFIX%/}"/}"
-  LOCAL_SAMPLE_PATH="$SOURCE_DIR/$LOCAL_SAMPLE_RELATIVE"
 
   if [[ ! -f "$LOCAL_SAMPLE_PATH" ]]; then
     echo "FAIL: Matching local sample does not exist:"
     echo "$LOCAL_SAMPLE_PATH"
     exit 1
   fi
+
+  mkdir -p "$(dirname "$RESTORE_PATH")"
 
   aws s3 cp \
     "s3://${BUCKET}/${SAMPLE_KEY}" \

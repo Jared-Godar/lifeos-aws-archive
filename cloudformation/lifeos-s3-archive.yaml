@@ -202,9 +202,9 @@ Outputs:
     Value: !Ref LifeOSArchiveLogBucket
 
   ExampleGoProSyncCommand:
-    Description: Example GoPro upload command.
-    Value: !Sub "aws s3 sync ~/Movies/GoPro s3://${BucketName}/video/gopro/ --storage-class STANDARD"
+    Description: Example guarded GoPro upload command from the repository root.
+    Value: !Sub "BUCKET=${BucketName} scripts/sync_gopro_to_s3.sh --execute"
 
-  ExampleManifestUploadCommand:
-    Description: Example manifest upload command.
-    Value: !Sub "BUCKET=${BucketName} COLLECTION=gopro scripts/upload_manifests_to_s3.sh --execute"
+  ExampleManifestCommands:
+    Description: Example guarded GoPro manifest commands from the repository root.
+    Value: !Sub "scripts/generate_manifest.sh ~/Movies/GoPro manifests gopro && BUCKET=${BucketName} COLLECTION=gopro scripts/upload_manifests_to_s3.sh --execute"
