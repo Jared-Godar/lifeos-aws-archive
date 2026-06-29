@@ -1,0 +1,46 @@
+[
+  {
+    "Key": "Project",
+    "Value": "lifeos-aws-archive"
+  },
+  {
+    "Key": "Environment",
+    "Value": "personal-prod"
+  },
+  {
+    "Key": "Owner",
+    "Value": "jared-godar"
+  },
+  {
+    "Key": "Purpose",
+    "Value": "archive-automation"
+  },
+  {
+    "Key": "ManagedBy",
+    "Value": "manual"
+  },
+  {
+    "Key": "CreatedDate",
+    "Value": "2026-06-29"
+  },
+  {
+    "Key": "ReviewDate",
+    "Value": "2026-09-29"
+  },
+  {
+    "Key": "RotationDate",
+    "Value": "2026-09-29"
+  },
+  {
+    "Key": "Lifecycle",
+    "Value": "active"
+  },
+  {
+    "Key": "PrivilegeLevel",
+    "Value": "least-access"
+  },
+  {
+    "Key": "Repository",
+    "Value": "lifeos-aws-archive"
+  }
+]

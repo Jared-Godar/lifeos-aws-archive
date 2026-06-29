@@ -17,6 +17,7 @@ repos:
   - repo: local
     hooks:
       - id: cfn-lint
+        exclude: ^cloudformation/tags\.yaml$
         name: cfn-lint
         entry: uv run cfn-lint
         language: system

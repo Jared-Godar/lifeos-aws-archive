@@ -374,3 +374,299 @@ tests/test_archive_photo_batch.sh
 ```bash
 
 ```
+
+---
+
+## AWS IAM access-key profile
+
+> 20260629
+
+```bash
+aws configure --profile lifeos
+```
+
+Create an IAMuser for the key.
+
+### Policy (least access principal)
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ArchiveBucketList",
+      "Effect": "Allow",
+      "Action": ["s3:ListBucket", "s3:GetBucketLocation"],
+      "Resource": "arn:aws:s3:::<ARCHIVE_BUCKET_PREFIX>*"
+    },
+    {
+      "Sid": "ArchiveObjectReadWriteNoDelete",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:GetObjectAttributes",
+        "s3:GetObjectTagging",
+        "s3:GetObjectVersion",
+        "s3:GetObjectVersionAttributes",
+        "s3:GetObjectVersionTagging",
+        "s3:PutObject",
+        "s3:PutObjectTagging"
+      ],
+      "Resource": "arn:aws:s3:::<ARCHIVE_BUCKET_PREFIX>*/*"
+    },
+    {
+      "Sid": "ArchiveBucketConfigReadWrite",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning",
+        "s3:GetEncryptionConfiguration",
+        "s3:PutEncryptionConfiguration",
+        "s3:GetBucketPolicy",
+        "s3:PutBucketPolicy",
+        "s3:GetBucketPublicAccessBlock",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetLifecycleConfiguration",
+        "s3:PutLifecycleConfiguration",
+        "s3:GetBucketLogging",
+        "s3:PutBucketLogging",
+        "s3:GetBucketTagging",
+        "s3:PutBucketTagging"
+      ],
+      "Resource": "arn:aws:s3:::<ARCHIVE_BUCKET_PREFIX>*"
+    },
+    {
+      "Sid": "CloudFormationArchiveDeploy",
+      "Effect": "Allow",
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:UpdateStack",
+        "cloudformation:CreateChangeSet",
+        "cloudformation:ExecuteChangeSet",
+        "cloudformation:DeleteChangeSet",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents",
+        "cloudformation:DescribeStackResources",
+        "cloudformation:GetTemplate",
+        "cloudformation:GetTemplateSummary",
+        "cloudformation:ListStackResources",
+        "cloudformation:ValidateTemplate"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "BudgetManagement",
+      "Effect": "Allow",
+      "Action": [
+        "budgets:ModifyBudget",
+        "budgets:ViewBudget",
+        "budgets:TagResource",
+        "budgets:UntagResource",
+        "budgets:ListTagsForResource"
+      ],
+      "Resource": "arn:aws:budgets::<ACCOUNT_ID>:budget/*"
+    },
+    {
+      "Sid": "BudgetInitialServiceLinkedRole",
+      "Effect": "Allow",
+      "Action": "iam:CreateServiceLinkedRole",
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "iam:AWSServiceName": "budgets.amazonaws.com"
+        }
+      }
+    },
+    {
+      "Sid": "BudgetConsoleBillingView",
+      "Effect": "Allow",
+      "Action": "billing:GetBillingViewData",
+      "Resource": "*"
+    },
+    {
+      "Sid": "IamReadOnlyDiagnostics",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetUser",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:GetUserPolicy",
+        "iam:ListAccessKeys",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListAttachedUserPolicies",
+        "iam:ListEntitiesForPolicy",
+        "iam:ListPolicies",
+        "iam:ListPolicyVersions",
+        "iam:ListRolePolicies",
+        "iam:ListRoles",
+        "iam:ListUserPolicies",
+        "iam:ListUsers"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "IdentityChecks",
+      "Effect": "Allow",
+      "Action": "sts:GetCallerIdentity",
+      "Resource": "*"
+    }
+  ]
+}
+```
+
+#### Shared tags (user, policy, and access key)
+
+| Key             | Example Value      | Notes                                   |
+| --------------- | ------------------ | --------------------------------------- |
+| Project         | lifeos-aws-archive | Owning project                          |
+| Environment     | personal-prod      | Environment classification              |
+| Owner           | jared-godar        | Responsible owner                       |
+| Purpose         | archive-automation | Primary use case                        |
+| ManagedBy       | manual             | manual, cloudformation, terraform, etc. |
+| CreatedDate     | 2026-06-29         | ISO-8601 creation date                  |
+| ReviewDate      | 2026-09-29         | Next access review date                 |
+| RotationDate    | 2026-09-29         | Planned access-key rotation date        |
+| DataClass       | personal-archive   | Data sensitivity classification         |
+| PrivilegeLevel  | least-access       | Permission model                        |
+| CostCenter      | personal           | Billing grouping                        |
+| Repository      | lifeos-aws-archive | Source repository                       |
+| AutomationScope | single-bucket      | Intended scope                          |
+| IncidentContact | jared-godar        | Responsible contact                     |
+| ComplianceScope | none               | Optional compliance boundary            |
+| BackupTier      | archive            | Archive, backup, hot, etc.              |
+| Lifecycle       | active             | active, deprecated, retired             |
+
+#### IAM user specific tags
+
+| Key                | Example Value  |
+| ------------------ | -------------- |
+| UserType           | service-user   |
+| AuthenticationType | access-key     |
+| AccessType         | cli-and-vscode |
+
+#### IAM policy specific tags
+
+| Key           | Example Value |
+| ------------- | ------------- |
+| PolicyScope   | bucket-only   |
+| PolicyVersion | v1            |
+| ReviewCadence | quarterly     |
+
+#### TAGS JSON
+
+```json
+[
+  {
+    "Key": "Project",
+    "Value": "lifeos-aws-archive"
+  },
+  {
+    "Key": "Environment",
+    "Value": "personal-prod"
+  },
+  {
+    "Key": "Owner",
+    "Value": "jared-godar"
+  },
+  {
+    "Key": "Purpose",
+    "Value": "archive-automation"
+  },
+  {
+    "Key": "ManagedBy",
+    "Value": "manual"
+  },
+  {
+    "Key": "CreatedDate",
+    "Value": "2026-06-29"
+  },
+  {
+    "Key": "ReviewDate",
+    "Value": "2026-09-29"
+  },
+  {
+    "Key": "RotationDate",
+    "Value": "2026-09-29"
+  },
+  {
+    "Key": "Lifecycle",
+    "Value": "active"
+  },
+  {
+    "Key": "PrivilegeLevel",
+    "Value": "least-access"
+  },
+  {
+    "Key": "Repository",
+    "Value": "lifeos-aws-archive"
+  }
+]
+```
+
+#### TAGS YAML
+
+```yaml
+Tags:
+  - Key: Project
+    Value: lifeos-aws-archive
+  - Key: Environment
+    Value: personal-prod
+  - Key: Owner
+    Value: jared-godar
+  - Key: Purpose
+    Value: archive-automation
+  - Key: ManagedBy
+    Value: manual
+  - Key: CreatedDate
+    Value: "2026-06-29"
+  - Key: ReviewDate
+    Value: "2026-09-29"
+  - Key: RotationDate
+    Value: "2026-09-29"
+  - Key: Lifecycle
+    Value: active
+  - Key: PrivilegeLevel
+    Value: least-access
+  - Key: Repository
+    Value: lifeos-aws-archive
+```
+
+### Configure Access Key
+
+```bash
+aws configure --profile lifeos
+```
+
+```bash
+AWS Access Key ID: <new access key id>
+AWS Secret Access Key: <new secret access key>
+Default region name: us-east-1
+Default output format: json
+```
+
+#### TEST
+
+```bash
+aws sts get-caller-identity --profile lifeos
+```
+
+_Expected Output:_
+
+```bash
+arn:aws:iam::<ACCOUNT_ID>:user/lifeos-archive-user
+```
+
+Make this profile default for your current terminal session:
+
+```bash
+set -gx AWS_PROFILE lifeos
+```
+
+Persist it:
+
+```bash
+echo 'set -gx AWS_PROFILE lifeos' >> ~/.config/fish/config.fish
+```
