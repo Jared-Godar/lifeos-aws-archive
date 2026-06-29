@@ -67,5 +67,7 @@ node_modules/
 # Local Python version selection
 .python-version
 
-# VS Code workspace file
-*.code-workspace
+# Local IDE state
+lifeos-aws-archive.code-workspace
+.vscode/*.db
+.vscode/*.sqlite
