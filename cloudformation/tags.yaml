@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=
+# yaml-language-server: $schema=../.vscode/cloudformation.schema.json
 Tags:
   - Key: Project
     Value: lifeos-aws-archive
