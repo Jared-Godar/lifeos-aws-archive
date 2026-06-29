@@ -2,19 +2,54 @@
 
 | Date       | Notes                                                                                    |
 | ---------- | ---------------------------------------------------------------------------------------- |
-| 2026-06-29 | Added unified repository validation and aligned CI with deployable templates.            |
+| 2026-06-29 | Recovered an unmerged cloud PR and corrected repository validation and restore tooling.   |
 | 2026-06-28 | Added validation, hardening reviews, portfolio documentation, and an AWS budget runbook. |
 
 ---
 
-## 2026-06-29
+## 2026-06-29 — Repository Validation and PR Recovery
 
-- [x] Added a single local validation entrypoint for CloudFormation, shell, and Markdown checks.
-- [x] Limited CloudFormation linting to the deployable archive template in CI and local validation.
+### Incident and recovery
+
+GitHub Actions failed because its wildcard CloudFormation command treated
+`cloudformation/tags.yaml`, a reusable tag document, as a complete deployable
+template. Local pre-commit configuration already excluded that file, but the CI
+workflow and proposed repository-validation script did not use the same scope.
+
+Codex cloud PR #1 proposed several useful validation and restore improvements,
+but follow-up repair commits remained inside isolated cloud task environments
+and could not be pushed to the PR branch. The PR was closed without merging.
+The useful changes were reviewed, corrected, and recreated locally from the
+current `origin/main` instead of merging the stale branch.
+
+### Completed changes
+
+- [x] Added `scripts/validate_repo.sh` as the local entrypoint for CloudFormation, ShellCheck, and Markdown validation.
+- [x] Limited CloudFormation linting to `cloudformation/lifeos-s3-archive.yaml` in CI and local validation.
+- [x] Kept `cloudformation/tags.yaml` available as a tag document without treating it as a deployable template.
 - [x] Extended ShellCheck coverage to production scripts and test scripts.
-- [x] Preserved guarded sync and manifest upload commands in CloudFormation outputs.
-- [x] Hardened restored-sample handling for temporary files and nested object paths.
+- [x] Added an `npm ci` bootstrap when Markdown tooling is missing from a fresh checkout.
+- [x] Added the pinned ShellCheck development dependency and regenerated `uv.lock` without downgrading its lock format.
+- [x] Replaced raw CloudFormation example uploads with the guarded sync and manifest uploader workflows.
+- [x] Replaced the verifier's shared temporary filename with a unique `mktemp` file and automatic cleanup.
+- [x] Preserved nested S3 object paths when restoring verification samples.
 - [x] Added checksum-backed test upload and restore examples to the runbook.
+- [x] Replaced manual interrupted-upload and verification examples with guarded repository scripts.
+- [x] Documented the unified validator in the README and repository tree.
+
+### Validation evidence
+
+The recovered local change set passed:
+
+- `uv run scripts/validate_repo.sh`
+- CloudFormation validation
+- ShellCheck for `scripts/*.sh` and `tests/*.sh`
+- Markdown linting
+- The complete pre-commit suite
+- `git diff --check`
+
+No live CloudFormation deployment or S3 mutation was performed during this
+recovery.
 
 ---
 
