@@ -13,6 +13,7 @@ set -euo pipefail
 #   scripts/archive_photo_batch.sh --source "/path/to/exported photos"
 #   scripts/archive_photo_batch.sh --source DIR --label 2025-family
 #   scripts/archive_photo_batch.sh --cooloff-days 7
+#   scripts/archive_photo_batch.sh --source DIR --label 2025-family --resume
 #
 # Configuration:
 #   BUCKET                  S3 bucket override
@@ -38,9 +39,13 @@ COOL_OFF_DAYS="${COOL_OFF_DAYS:-7}"
 
 SOURCE_INPUT=""
 BATCH_LABEL=""
+RESUME=false
+RESUME_AVAILABLE=false
+RESUME_PRINTED=false
+CURRENT_STAGE="startup"
 
 usage() {
-  sed -n '4,23p' "$0"
+  sed -n '4,24p' "$0"
 }
 
 section() {
@@ -54,11 +59,13 @@ confirm() {
   local prompt="$1"
   local reply=""
 
+  echo "$prompt"
   while true; do
-    printf '%s [y/N] ' "$prompt"
+    printf 'Return to this terminal, type y or n, then press Enter: '
     if ! IFS= read -r reply; then
       echo
-      return 1
+      echo "INPUT CLOSED: The terminal input stream ended before confirmation."
+      return 2
     fi
 
     case "$reply" in
@@ -66,14 +73,66 @@ confirm() {
         return 0
         ;;
       n|N|no|NO|No|"")
-        return 1
+        if [[ -z "$reply" ]]; then
+          echo "No response entered. Type y or n, then press Enter."
+        else
+          return 1
+        fi
         ;;
       *)
-        echo "Enter y or n."
+        echo "Unrecognized response '$reply'. Type y or n."
         ;;
     esac
   done
 }
+
+fish_double_quote() {
+  local value="$1"
+
+  value="${value//\\/\\\\}"
+  value="${value//\"/\\\"}"
+  value="${value//\$/\\\$}"
+  printf '"%s"' "$value"
+}
+
+print_resume_command() {
+  echo "Resume safely with this fish command:"
+  printf '  scripts/archive_photo_batch.sh \\\n    --source '
+  fish_double_quote "$SOURCE_DIR"
+  printf ' \\\n    --label %s \\\n    --cooloff-days %s \\\n    --resume\n' "$BATCH_LABEL" "$COOL_OFF_DAYS"
+  echo
+  echo "Resume mode reruns synchronization, reconciliation, and restores"
+  echo "idempotently before continuing to manifests and the calendar reminder."
+}
+
+pause_workflow() {
+  local reason="$1"
+
+  RESUME_PRINTED=true
+  section "Workflow Incomplete — Safe to Resume"
+  echo "$reason"
+  echo "Completed S3 objects are retained; this helper never rolls them back."
+  echo "No local source files were deleted."
+  echo
+  print_resume_command
+  exit 3
+}
+
+on_exit() {
+  local status="$?"
+
+  if (( status != 0 )) && [[ "$RESUME_AVAILABLE" == true && "$RESUME_PRINTED" == false ]]; then
+    echo
+    section "Workflow Stopped During: $CURRENT_STAGE"
+    echo "The workflow did not reach final completion."
+    echo
+    print_resume_command
+  fi
+}
+
+trap on_exit EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 normalize_label() {
   printf '%s' "$1" |
@@ -273,6 +332,10 @@ while [[ "$#" -gt 0 ]]; do
       COOL_OFF_DAYS="$2"
       shift 2
       ;;
+    --resume)
+      RESUME=true
+      shift
+      ;;
     --help|-h)
       usage
       exit 0
@@ -338,7 +401,12 @@ SUGGESTED_LABEL="$(normalize_label "$(basename "$SOURCE_DIR")")"
 
 if [[ -z "$BATCH_LABEL" ]]; then
   printf 'Batch label [%s]: ' "$SUGGESTED_LABEL"
-  IFS= read -r BATCH_LABEL
+  if ! IFS= read -r BATCH_LABEL; then
+    echo
+    echo "INPUT CLOSED: No batch label was received. No changes were made."
+    echo "Rerun with --label $SUGGESTED_LABEL to avoid this prompt."
+    exit 3
+  fi
   BATCH_LABEL="${BATCH_LABEL:-$SUGGESTED_LABEL}"
 fi
 
@@ -359,7 +427,14 @@ if [[ "$SOURCE_DIR" != "$STANDARD_DIR" ]]; then
     exit 1
   fi
 
-  if ! confirm "Rename the selected folder to '$BATCH_LABEL'?"; then
+  if confirm "Rename the selected folder to '$BATCH_LABEL'?"; then
+    :
+  else
+    confirmation_status="$?"
+    if (( confirmation_status == 2 )); then
+      echo "Folder rename was not confirmed. No changes were made."
+      exit 3
+    fi
     echo "Cancelled before changing the folder or uploading files."
     exit 0
   fi
@@ -397,6 +472,8 @@ if [[ -z "$MEDIA_SAMPLE" ]]; then
   exit 1
 fi
 
+RESUME_AVAILABLE=true
+
 section "Archive Plan"
 echo "Local source:        $SOURCE_DIR"
 echo "Local files:         $LOCAL_FILES"
@@ -409,6 +486,7 @@ echo "Media sample:        ${MEDIA_SAMPLE#"$SOURCE_DIR"/}"
 echo "Cooling-off period:  $COOL_OFF_DAYS days"
 
 section "Upload Dry Run"
+CURRENT_STAGE="upload dry run"
 BUCKET="$BUCKET" \
 SOURCE_DIR="$SOURCE_DIR" \
 DEST_PREFIX="$PHOTO_PREFIX" \
@@ -418,12 +496,22 @@ LOG_DIR="$RECORD_DIR" \
 
 echo
 echo "Review the dry-run output and archive plan above."
-if ! confirm "Proceed with the production S3 upload?"; then
-  echo "Upload cancelled. No files were uploaded by this helper."
+if [[ "$RESUME" == true ]]; then
+  echo "RESUME MODE: Continuing after the dry run without a second upload prompt."
+  echo "The checksum-backed sync is idempotent and transfers only missing or changed files."
+elif confirm "Proceed with the production S3 upload?"; then
+  :
+else
+  confirmation_status="$?"
+  if (( confirmation_status == 2 )); then
+    pause_workflow "Upload authorization was not received because terminal input closed."
+  fi
+  echo "Upload cancelled by user. No upload was started at this checkpoint."
   exit 0
 fi
 
 section "Production Upload"
+CURRENT_STAGE="production upload"
 BUCKET="$BUCKET" \
 SOURCE_DIR="$SOURCE_DIR" \
 DEST_PREFIX="$PHOTO_PREFIX" \
@@ -432,6 +520,7 @@ LOG_DIR="$RECORD_DIR" \
   "$SYNC_SCRIPT" --execute --no-progress
 
 section "Independent Reconciliation"
+CURRENT_STAGE="independent reconciliation"
 inventory_remote
 echo "Local files:  $LOCAL_FILES"
 echo "Remote files: $REMOTE_FILES"
@@ -458,23 +547,32 @@ fi
 echo "PASS: Counts, bytes, and final dry run reconcile."
 
 section "Restore and SHA-256 Verification"
+CURRENT_STAGE="restore and checksum verification"
 restore_and_verify "XMP" "$XMP_SAMPLE"
 echo
 restore_and_verify "Media" "$MEDIA_SAMPLE"
 
 section "Visual Media Comparison"
+CURRENT_STAGE="visual media confirmation"
 echo "Opening the original and restored media with their default macOS application."
 "$OPEN_COMMAND" "$MEDIA_SAMPLE" "$RESTORED_MEDIA"
 
-if ! confirm "Did both media files open successfully and match visually?"; then
-  echo "FAIL: Visual media comparison was not confirmed."
-  exit 1
+if confirm "VISUAL CHECK REQUIRED: Did both media files open successfully and match visually?"; then
+  :
+else
+  confirmation_status="$?"
+  if (( confirmation_status == 2 )); then
+    pause_workflow "Upload, reconciliation, and both SHA-256 checks passed, but visual confirmation was not recorded because terminal input closed. Manifests and the cooling-off reminder were not created."
+  fi
+  pause_workflow "Upload, reconciliation, and both SHA-256 checks passed, but you answered no to the visual comparison. Manifests and the cooling-off reminder were not created."
 fi
 
 section "Generate Manifests"
+CURRENT_STAGE="manifest generation"
 "$GENERATE_MANIFEST_SCRIPT" "$SOURCE_DIR" "$MANIFEST_DIR" "$MANIFEST_COLLECTION"
 
 section "Manifest Upload Dry Run"
+CURRENT_STAGE="manifest upload dry run"
 BUCKET="$BUCKET" \
 COLLECTION="$MANIFEST_COLLECTION" \
 MANIFEST_DIR="$MANIFEST_DIR" \
@@ -483,6 +581,7 @@ ENV_FILE="$ENV_FILE" \
   "$UPLOAD_MANIFEST_SCRIPT"
 
 section "Manifest Upload"
+CURRENT_STAGE="manifest upload"
 BUCKET="$BUCKET" \
 COLLECTION="$MANIFEST_COLLECTION" \
 MANIFEST_DIR="$MANIFEST_DIR" \
@@ -491,6 +590,7 @@ ENV_FILE="$ENV_FILE" \
   "$UPLOAD_MANIFEST_SCRIPT" --execute
 
 section "Verification Record and Cooling-Off Reminder"
+CURRENT_STAGE="verification record and cooling-off reminder"
 create_calendar_file
 write_verification_record
 
@@ -501,6 +601,7 @@ echo "Import the cooling-off reminder with:"
 echo "  open \"$ICS_FILE\""
 
 section "Production Photo Batch Complete"
+CURRENT_STAGE="complete"
 echo "Batch:          $BATCH_LABEL"
 echo "S3 destination: $S3_DEST"
 echo "Files:          $LOCAL_FILES"

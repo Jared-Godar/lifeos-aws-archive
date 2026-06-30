@@ -16,6 +16,7 @@ RESTORE_ROOT="$TMP_ROOT/restores"
 MANIFEST_DIR="$TMP_ROOT/manifests"
 CALL_LOG="$TMP_ROOT/calls.log"
 OUTPUT_LOG="$TMP_ROOT/output.log"
+RESUME_OUTPUT_LOG="$TMP_ROOT/resume-output.log"
 
 mkdir -p "$SOURCE_DIR" "$MOCK_BIN" "$MOCK_SCRIPTS"
 printf 'xmp metadata\n' > "$SOURCE_DIR/photo.xmp"
@@ -73,7 +74,7 @@ EOF
 
 chmod +x "$MOCK_BIN/aws" "$MOCK_BIN/mock-open" "$MOCK_SCRIPTS/"*
 
-printf 'y\ny\ny\n' |
+printf 'y\ny\n\ny\n' |
   PATH="$MOCK_BIN:$PATH" \
   BUCKET="test-bucket" \
   SYNC_SCRIPT="$MOCK_SCRIPTS/sync" \
@@ -96,6 +97,7 @@ printf 'y\ny\ny\n' |
 grep -q 'PASS: Counts, bytes, and final dry run reconcile.' "$OUTPUT_LOG"
 grep -q 'PASS: XMP restored sample matches the local SHA-256.' "$OUTPUT_LOG"
 grep -q 'PASS: Media restored sample matches the local SHA-256.' "$OUTPUT_LOG"
+grep -q 'No response entered. Type y or n, then press Enter.' "$OUTPUT_LOG"
 grep -q 'Production Photo Batch Complete' "$OUTPUT_LOG"
 grep -q 'sync photos/ingest/2025-family 2 --no-progress' "$CALL_LOG"
 grep -q 'sync photos/ingest/2025-family 2 --execute --no-progress' "$CALL_LOG"
@@ -105,4 +107,32 @@ grep -q '^BEGIN:VCALENDAR' "$RECORD_DIR/2025-family_cooloff_review.ics"
 grep -q 'SUMMARY:Review archived photo batch: 2025-family' "$RECORD_DIR/2025-family_cooloff_review.ics"
 grep -q 'Visual comparison: passed' "$RECORD_DIR/2025-family_verification_"*.md
 
-echo "PASS: production photo helper completed the mocked end-to-end workflow."
+set +e
+PATH="$MOCK_BIN:$PATH" \
+  BUCKET="test-bucket" \
+  SYNC_SCRIPT="$MOCK_SCRIPTS/sync" \
+  GENERATE_MANIFEST_SCRIPT="$MOCK_SCRIPTS/generate" \
+  UPLOAD_MANIFEST_SCRIPT="$MOCK_SCRIPTS/upload" \
+  OPEN_COMMAND="mock-open" \
+  MANIFEST_DIR="$MANIFEST_DIR" \
+  RECORD_DIR="$RECORD_DIR" \
+  RESTORE_ROOT="$RESTORE_ROOT" \
+  MOCK_REMOTE_BYTES="$REMOTE_BYTES" \
+  MOCK_STANDARD_DIR="$STANDARD_DIR" \
+  MOCK_CALL_LOG="$CALL_LOG" \
+  "$SCRIPT" \
+    --source "$STANDARD_DIR" \
+    --label 2025-family \
+    --cooloff-days 7 \
+    --resume < /dev/null > "$RESUME_OUTPUT_LOG"
+resume_status="$?"
+set -e
+
+[[ "$resume_status" -eq 3 ]]
+grep -q 'RESUME MODE: Continuing after the dry run without a second upload prompt.' "$RESUME_OUTPUT_LOG"
+grep -q 'Workflow Incomplete — Safe to Resume' "$RESUME_OUTPUT_LOG"
+grep -q 'Upload, reconciliation, and both SHA-256 checks passed' "$RESUME_OUTPUT_LOG"
+grep -q 'scripts/archive_photo_batch.sh' "$RESUME_OUTPUT_LOG"
+grep -q -- '--resume' "$RESUME_OUTPUT_LOG"
+
+echo "PASS: production photo helper completed and safely resumed the mocked workflow."

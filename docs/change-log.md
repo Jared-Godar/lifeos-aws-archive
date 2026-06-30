@@ -2,7 +2,7 @@
 
 | Date       | Notes                                                                                    |
 | ---------- | ---------------------------------------------------------------------------------------- |
-| 2026-06-29 | Recovered an unmerged cloud PR and corrected repository validation and restore tooling.   |
+| 2026-06-29 | Recovered an unmerged cloud PR and corrected repository validation and restore tooling.  |
 | 2026-06-28 | Added validation, hardening reviews, portfolio documentation, and an AWS budget runbook. |
 
 ---
@@ -36,6 +36,9 @@ current `origin/main` instead of merging the stale branch.
 - [x] Added checksum-backed test upload and restore examples to the runbook.
 - [x] Replaced manual interrupted-upload and verification examples with guarded repository scripts.
 - [x] Documented the unified validator in the README and repository tree.
+- [x] Completed a production-photo smoke test with 56 files and 45,058,125 bytes reconciled in S3.
+- [x] Verified restored XMP and JPEG samples by SHA-256 and visual comparison.
+- [x] Added explicit confirmation handling and a safe, idempotent `--resume` path for interrupted photo batches.
 
 ### Validation evidence
 
@@ -50,6 +53,20 @@ The recovered local change set passed:
 
 No live CloudFormation deployment or S3 mutation was performed during this
 recovery.
+
+### Production photo smoke test and resume handling
+
+The production helper uploaded and reconciled a 56-file photo batch totaling
+45,058,125 bytes. Restored XMP and JPEG samples matched their local SHA-256
+values, and the original and restored JPEG matched visually. Terminal input
+closed at the visual-confirmation prompt, so the workflow correctly stopped
+before manifest generation, manifest upload, and reminder creation.
+
+The helper now distinguishes blank input, an explicit `n`, and closed terminal
+input. It prints a fish-compatible resume command, exits with status 3 for an
+incomplete but safely resumable workflow, and supports `--resume`. Resume mode
+repeats checksum-backed synchronization and verification without deleting S3
+objects or re-uploading unchanged files.
 
 ---
 
@@ -716,4 +733,47 @@ Persist it:
 
 ```bash
 echo 'set -gx AWS_PROFILE lifeos' >> ~/.config/fish/config.fish
+```
+
+---
+
+## VALIDATE CODE CHANGES
+
+> 20260629
+
+- [ ] 1. **Confirm prerequisites** Before bulk uploads, ensure:
+  - [ ] AWS budget alerts are active
+  - [ ] Current CloudFormation changes are deployed
+  - [ ] Encryption, versioning, public-access blocking, logging, and lifecycle rules are verified
+
+- [ ] Validate the repository
+
+```bash
+cd "/Users/example/Library/Mobile Documents/com~apple~CloudDocs/LifeOS/02 Projects/AWS Archive Migration/code/lifeos-aws-archive"
+
+git pull --ff-only origin main
+uv sync --group dev
+uv run scripts/validate_repo.sh
+```
+
+- [x] 2. Run a live smoke test
+  - [x] Export a noncritical Photos batch containing JPEG or HEIC media and XMP sidecars. Keep it below approximately 500 MB. Export into:
+
+```txt
+~/Pictures/Photo Exports/live-smoke-test
+```
+
+- [x] Run:
+
+```bash
+scripts/archive_photo_batch.sh \
+  --source "$HOME/Pictures/Photo Exports/live-smoke-test" \
+  --label live-smoke-test \
+  --cooloff-days 3
+```
+
+The destination will be:
+
+```txt
+s3://YOUR_BUCKET/photos/ingest/live-smoke-test/
 ```

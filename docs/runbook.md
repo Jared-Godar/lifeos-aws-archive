@@ -369,6 +369,28 @@ The helper does not delete local files or Apple Photos originals. Import the
 generated reminder with the command printed at completion. A calendar reminder
 is a review checkpoint, not automatic deletion authorization.
 
+### Resume an interrupted photo batch
+
+If terminal input closes or the workflow stops after the upload begins, the
+helper exits nonzero and prints a fish-compatible resume command. For example:
+
+```fish
+scripts/archive_photo_batch.sh \
+  --source "$HOME/Pictures/Photo Exports/2025-family" \
+  --label 2025-family \
+  --cooloff-days 7 \
+  --resume
+```
+
+Resume mode repeats the dry run, checksum-backed synchronization,
+reconciliation, sample restores, and visual check before continuing to the
+manifests and cooling-off reminder. These steps are idempotent: only missing or
+changed S3 objects are transferred, and the helper never uses `--delete`.
+
+Confirmation prompts require an explicit `y` or `n` followed by Enter. A blank
+response displays the prompt again. Closed input exits with status 3, preserves
+completed remote objects, and prints the exact command needed to resume.
+
 Run its mocked end-to-end test without contacting AWS:
 
 ```bash
