@@ -48,7 +48,9 @@ cat > "$MOCK_BIN/mock-open" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 printf 'open %s\n' "$*" >> "$MOCK_CALL_LOG"
-[[ -f "$1" && -f "$2" ]]
+for opened_file in "$@"; do
+  [[ -f "$opened_file" ]]
+done
 EOF
 
 cat > "$MOCK_SCRIPTS/sync" <<'EOF'
@@ -106,6 +108,8 @@ grep -q 'manifest photos-2025-family manifests/photos-2025-family --execute' "$C
 grep -q '^BEGIN:VCALENDAR' "$RECORD_DIR/2025-family_cooloff_review.ics"
 grep -q 'SUMMARY:Review archived photo batch: 2025-family' "$RECORD_DIR/2025-family_cooloff_review.ics"
 grep -q 'Visual comparison: passed' "$RECORD_DIR/2025-family_verification_"*.md
+grep -q 'Calendar reminder opened successfully.' "$OUTPUT_LOG"
+grep -q '2025-family_cooloff_review.ics' "$CALL_LOG"
 
 set +e
 PATH="$MOCK_BIN:$PATH" \
@@ -124,12 +128,12 @@ PATH="$MOCK_BIN:$PATH" \
     --source "$STANDARD_DIR" \
     --label 2025-family \
     --cooloff-days 7 \
-    --resume < /dev/null > "$RESUME_OUTPUT_LOG"
+    --resume < <(printf 'y\n') > "$RESUME_OUTPUT_LOG"
 resume_status="$?"
 set -e
 
 [[ "$resume_status" -eq 3 ]]
-grep -q 'RESUME MODE: Continuing after the dry run without a second upload prompt.' "$RESUME_OUTPUT_LOG"
+grep -q 'RESUME MODE: Fresh approval is required because the source may have changed.' "$RESUME_OUTPUT_LOG"
 grep -q 'Workflow Incomplete — Safe to Resume' "$RESUME_OUTPUT_LOG"
 grep -q 'Upload, reconciliation, and both SHA-256 checks passed' "$RESUME_OUTPUT_LOG"
 grep -q 'scripts/archive_photo_batch.sh' "$RESUME_OUTPUT_LOG"

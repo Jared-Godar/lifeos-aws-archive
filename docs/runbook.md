@@ -365,9 +365,11 @@ The helper performs this guarded sequence:
 10. Generates and uploads batch-specific manifests.
 11. Writes a private Markdown verification record and `.ics` cooling-off reminder under `logs/photo-batches/`.
 
-The helper does not delete local files or Apple Photos originals. Import the
-generated reminder with the command printed at completion. A calendar reminder
-is a review checkpoint, not automatic deletion authorization.
+The helper does not delete local files or Apple Photos originals. On successful
+completion, it automatically opens the generated `.ics` reminder in the default
+calendar application. Failure to launch the calendar produces a warning without
+invalidating the completed archive. A calendar reminder is a review checkpoint,
+not automatic deletion authorization.
 
 ### Resume an interrupted photo batch
 
@@ -386,6 +388,9 @@ Resume mode repeats the dry run, checksum-backed synchronization,
 reconciliation, sample restores, and visual check before continuing to the
 manifests and cooling-off reminder. These steps are idempotent: only missing or
 changed S3 objects are transferred, and the helper never uses `--delete`.
+Resume mode still requires explicit approval after every fresh dry run. The
+helper also stops before upload if the source file count or byte total changes
+after the archive plan, which protects against an export that is still running.
 
 Confirmation prompts require an explicit `y` or `n` followed by Enter. A blank
 response displays the prompt again. Closed input exits with status 3, preserves

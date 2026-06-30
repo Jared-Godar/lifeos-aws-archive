@@ -473,6 +473,8 @@ if [[ -z "$MEDIA_SAMPLE" ]]; then
 fi
 
 RESUME_AVAILABLE=true
+PLANNED_LOCAL_FILES="$LOCAL_FILES"
+PLANNED_LOCAL_BYTES="$LOCAL_BYTES"
 
 section "Archive Plan"
 echo "Local source:        $SOURCE_DIR"
@@ -497,9 +499,11 @@ LOG_DIR="$RECORD_DIR" \
 echo
 echo "Review the dry-run output and archive plan above."
 if [[ "$RESUME" == true ]]; then
-  echo "RESUME MODE: Continuing after the dry run without a second upload prompt."
-  echo "The checksum-backed sync is idempotent and transfers only missing or changed files."
-elif confirm "Proceed with the production S3 upload?"; then
+  echo "RESUME MODE: Fresh approval is required because the source may have changed."
+  echo "The checksum-backed sync transfers only missing or changed files."
+fi
+
+if confirm "Proceed with the production S3 upload shown above?"; then
   :
 else
   confirmation_status="$?"
@@ -508,6 +512,11 @@ else
   fi
   echo "Upload cancelled by user. No upload was started at this checkpoint."
   exit 0
+fi
+
+inventory_local
+if [[ "$LOCAL_FILES" != "$PLANNED_LOCAL_FILES" || "$LOCAL_BYTES" != "$PLANNED_LOCAL_BYTES" ]]; then
+  pause_workflow "The local source changed after the archive plan was calculated. Planned: ${PLANNED_LOCAL_FILES} files / ${PLANNED_LOCAL_BYTES} bytes. Current: ${LOCAL_FILES} files / ${LOCAL_BYTES} bytes. Wait for the export to finish, then resume to review a fresh dry run."
 fi
 
 section "Production Upload"
@@ -597,8 +606,13 @@ write_verification_record
 echo "Verification record: $RECORD_FILE"
 echo "Calendar event:      $ICS_FILE"
 echo
-echo "Import the cooling-off reminder with:"
-echo "  open \"$ICS_FILE\""
+echo "Opening the cooling-off reminder in the default calendar application."
+if "$OPEN_COMMAND" "$ICS_FILE"; then
+  echo "Calendar reminder opened successfully."
+else
+  echo "WARNING: The archive completed, but the calendar reminder did not open."
+  echo "Open it manually: $ICS_FILE"
+fi
 
 section "Production Photo Batch Complete"
 CURRENT_STAGE="complete"
