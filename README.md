@@ -1,5 +1,12 @@
 # LifeOS AWS Archive
 
+[![Repository validation](https://github.com/Jared-Godar/lifeos-aws-archive/actions/workflows/validate-cloudformation.yml/badge.svg)](https://github.com/Jared-Godar/lifeos-aws-archive/actions/workflows/validate-cloudformation.yml)
+[![CloudFormation](https://img.shields.io/badge/IaC-CloudFormation-FF9900?logo=amazonwebservices&logoColor=white)](cloudformation/lifeos-s3-archive.yaml)
+[![Shell](https://img.shields.io/badge/automation-shell-4EAA25?logo=gnubash&logoColor=white)](scripts/)
+[![License: MPL 2.0](https://img.shields.io/badge/license-MPL%202.0-orange.svg)](LICENSE)
+
+![LifeOS AWS Archive social preview](docs/images/social-preview.png)
+
 Personal Infrastructure-as-Code project for long-term archival, backup, and organization of digital assets using AWS and CloudFormation.
 
 ## Overview
@@ -133,6 +140,12 @@ Current verified outcomes include:
 
 ## Deployment
 
+> [!IMPORTANT]
+> Review resource names, lifecycle timing, retention requirements, and estimated
+> AWS charges before deploying. The template blocks public access and enables
+> encryption, but each operator remains responsible for their AWS account and
+> stored data.
+
 Validate the CloudFormation template:
 
 ```bash
@@ -207,3 +220,7 @@ Jared Godar
 Data Engineer | Veteran | AWS Practitioner
 
 This repository serves as both a practical archival solution and an ongoing demonstration of cloud infrastructure, automation, documentation, and operational engineering practices.
+
+## License
+
+This project is licensed under the [Mozilla Public License 2.0](LICENSE).

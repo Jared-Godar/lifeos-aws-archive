@@ -71,3 +71,6 @@ node_modules/
 lifeos-aws-archive.code-workspace
 .vscode/*.db
 .vscode/*.sqlite
+
+# Local secrets and machine-specific configuration
+.env.private
