@@ -6,7 +6,7 @@ license = "MPL-2.0"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "boto3>=1.43.38",
+    "boto3>=1.43.39",
     "click>=8.4.2",
     "python-dotenv>=1.2.2",
     "pyyaml>=6.0.3",
