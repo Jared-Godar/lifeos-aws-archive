@@ -1,8 +1,39 @@
 # Project Management Case Study
 
 LifeOS AWS Archive is managed as an operational infrastructure project rather
-than a one-time file transfer. The project board connects implementation work
-with explicit verification, documentation, and recurring archive maintenance.
+than a one-time file transfer. Work tracking connects implementation with
+explicit verification, documentation, and recurring archive maintenance.
+
+As of **2026-07-19**, the project is tracked natively on GitHub. The external
+Trello board that carried the project through its pilot phases is retired; its
+workflow is preserved below as a dated historical note.
+
+## Current workflow (GitHub, adopted 2026-07-19)
+
+- **Issues** capture all future work. Every issue cites its in-repo source
+  (a README roadmap item or a project document) and carries labels; past
+  Trello cards are not backfilled — completed work remains recorded in the
+  [change log](change-log.md) and the verified milestones below.
+- **Milestones** mirror the README roadmap: one GitHub milestone per open
+  roadmap phase (Phases 1–4 at adoption time). An issue is milestoned when it
+  maps to a roadmap phase.
+- **Priority** is signaled with the `priority: high`, `priority: medium`, and
+  `priority: low` labels; the remaining labels describe the nature of the
+  work, as the Trello labels did.
+- **Delivery loop**: issue → focused branch → pull request → merge. Pull
+  requests run `uv run scripts/validate_repo.sh` and follow
+  [CONTRIBUTING](../CONTRIBUTING.md); merging closes the linked issue.
+- **Releases**: tagged GitHub releases mark meaningful delivery points.
+  [v1.0.0](https://github.com/Jared-Godar/lifeos-aws-archive/releases/tag/v1.0.0)
+  marks the verified archival foundation at adoption time.
+
+Work-in-progress remains intentionally limited: archive batches are verified
+individually so a successful upload cannot be mistaken for a verified backup.
+
+## Historical note — Trello workflow (through 2026-07-19)
+
+The pilot phases ran on an external Trello board. The board is retired;
+this section records how it worked, for provenance.
 
 ![Redacted Trello workflow showing Ready, In Progress, Verify, Done, and Recurring Operations](images/trello-board.png)
 
@@ -13,7 +44,7 @@ The screenshot is redacted to remove account navigation and profile details.
 Raw Trello JSON exports are kept out of the repository because they may contain
 account identifiers, activity history, internal URLs, and invitation details.
 
-## Workflow
+### Board lists
 
 | List | Purpose | Exit condition |
 | --- | --- | --- |
@@ -25,11 +56,7 @@ account identifiers, activity history, internal URLs, and invitation details.
 | Done | Preserve completed work and its verification evidence. | No required work remains. |
 | Recurring Operations | Track periodic cost, lifecycle, restoration, and recovery reviews. | The review is recorded and its next occurrence is scheduled. |
 
-Work-in-progress is intentionally limited. Archive batches move through
-`In Progress` and `Verify` individually so a successful upload cannot be
-mistaken for a verified backup.
-
-## Labels
+### Board labels
 
 | Label | Scope |
 | --- | --- |
@@ -40,8 +67,8 @@ mistaken for a verified backup.
 | Cost | AWS Budgets, storage-class transitions, and cost reviews |
 | Documentation | Runbooks, architectural decisions, and portfolio material |
 
-Labels describe the nature of the work; list position describes its current
-state. Cards may carry more than one label when responsibilities overlap.
+Labels described the nature of the work; list position described its current
+state. Cards could carry more than one label when responsibilities overlapped.
 
 ## Verified Milestones
 
@@ -114,4 +141,5 @@ budget. The next archive step is a coherent 5–20 GiB production photo batch. I
 will run through `scripts/archive_photo_batch.sh`, which applies the pilot
 workflow consistently: standardize, preview, upload, reconcile, restore,
 checksum, inspect, generate manifests, record evidence, and schedule a
-cooling-off review before any storage-reduction decision.
+cooling-off review before any storage-reduction decision. Both are tracked as
+GitHub issues under their roadmap-phase milestones.
