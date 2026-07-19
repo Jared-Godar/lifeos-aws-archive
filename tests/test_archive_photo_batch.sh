@@ -22,7 +22,7 @@ mkdir -p "$SOURCE_DIR" "$MOCK_BIN" "$MOCK_SCRIPTS"
 printf 'xmp metadata\n' > "$SOURCE_DIR/photo.xmp"
 printf 'fake jpeg bytes\n' > "$SOURCE_DIR/photo.jpg"
 
-REMOTE_BYTES="$(( $(stat -f '%z' "$SOURCE_DIR/photo.xmp") + $(stat -f '%z' "$SOURCE_DIR/photo.jpg") ))"
+REMOTE_BYTES="$(( $(wc -c < "$SOURCE_DIR/photo.xmp") + $(wc -c < "$SOURCE_DIR/photo.jpg") ))"
 
 cat > "$MOCK_BIN/aws" <<'EOF'
 #!/usr/bin/env bash
