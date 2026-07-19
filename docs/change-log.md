@@ -2,8 +2,27 @@
 
 | Date       | Notes                                                                                    |
 | ---------- | ---------------------------------------------------------------------------------------- |
+| 2026-07-19 | Adopted GitHub issues, milestones, and releases for work tracking; retired Trello.       |
 | 2026-06-29 | Recovered an unmerged cloud PR and corrected repository validation and restore tooling.  |
 | 2026-06-28 | Added validation, hardening reviews, portfolio documentation, and an AWS budget runbook. |
+
+---
+
+## 2026-07-19 — GitHub Work-Tracking Adoption
+
+The project moved from the external Trello board to native GitHub work
+tracking. Future work is tracked as GitHub issues and milestones (no backfill
+of past Trello cards), and tagged releases mark meaningful delivery points.
+
+- [x] Created one milestone per open README roadmap phase (Phases 1–4).
+- [x] Filed sourced issues for every open roadmap item (#10–#19) plus the
+      migration record itself (#20); every issue cites its in-repo source.
+- [x] Added `priority: high`, `priority: medium`, and `priority: low` labels.
+- [x] Tagged the [v1.0.0](https://github.com/Jared-Godar/lifeos-aws-archive/releases/tag/v1.0.0)
+      release marking the verified archival foundation.
+- [x] Rewrote [project-management.md](project-management.md) around the GitHub
+      workflow, preserving the Trello case study as a dated historical note.
+- [x] Retired the external Trello board.
 
 ---
 
