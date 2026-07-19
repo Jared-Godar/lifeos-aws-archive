@@ -2,9 +2,33 @@
 
 | Date       | Notes                                                                                    |
 | ---------- | ---------------------------------------------------------------------------------------- |
+| 2026-07-19 | Added full-history secret scanning to CI and pre-commit plus test execution in CI.       |
 | 2026-07-19 | Adopted GitHub issues, milestones, and releases for work tracking; retired Trello.       |
 | 2026-06-29 | Recovered an unmerged cloud PR and corrected repository validation and restore tooling.  |
 | 2026-06-28 | Added validation, hardening reviews, portfolio documentation, and an AWS budget runbook. |
+
+---
+
+## 2026-07-19 — CI Depth: Secret Scanning and Test Execution
+
+The Validate Repository workflow previously linted (cfn-lint, shellcheck,
+markdownlint) but performed no secret scanning and never executed the test
+suite ([#22](https://github.com/Jared-Godar/lifeos-aws-archive/issues/22)).
+
+- [x] Added a dedicated "Secret scan (full history)" CI job that checks out
+      complete history and runs gitleaks 8.30.1 over it, with the action
+      pinned by commit SHA and least-privilege job permissions.
+- [x] Added the gitleaks hook to pre-commit so the same guard runs at commit
+      time, matching how the other linters are wired.
+- [x] Added focused mock-`aws` tests for the two highest-risk untested
+      scripts: `verify_gopro_sync.sh` (the integrity gate before local
+      deletion — pass path, count-mismatch failure, dry-run drift failure,
+      and restore-sample SHA-256 corruption detection) and
+      `sync_gopro_to_s3.sh` (dry-run default, upload lock, checksum flags,
+      and final-dry-run reconciliation failure).
+- [x] Added a CI job that executes every `tests/test_*.sh`, and made the
+      existing photo-batch test Linux-portable (`stat -f` → `wc -c`) so the
+      full suite runs on the ubuntu runner.
 
 ---
 
