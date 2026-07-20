@@ -45,7 +45,13 @@ jobs:
         run: npm run lint:md
 
   secret-scan:
-    name: Secret scan (full history)
+    # Renamed from "Secret scan (full history)": gitleaks-action scopes its
+    # scan to the triggering event's commits regardless of checkout depth,
+    # so the old name asserted a guarantee this job doesn't provide. The
+    # genuine recurring full-history layer is full-history-scan.yml, which
+    # runs the gitleaks CLI directly over all refs on a weekly schedule and
+    # via workflow_dispatch.
+    name: Secret scan (incremental)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
