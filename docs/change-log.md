@@ -2,10 +2,28 @@
 
 | Date       | Notes                                                                                    |
 | ---------- | ---------------------------------------------------------------------------------------- |
+| 2026-07-20 | Added a genuinely recurring full-history secret scan; renamed the misnamed per-push job. |
 | 2026-07-19 | Added full-history secret scanning to CI and pre-commit plus test execution in CI.       |
 | 2026-07-19 | Adopted GitHub issues, milestones, and releases for work tracking; retired Trello.       |
 | 2026-06-29 | Recovered an unmerged cloud PR and corrected repository validation and restore tooling.  |
 | 2026-06-28 | Added validation, hardening reviews, portfolio documentation, and an AWS budget runbook. |
+
+---
+
+## 2026-07-20 — CI: Genuine Recurring Full-History Secret Scan
+
+The 2026-07-19 CI depth work (below) added a "Secret scan (full history)" job,
+but `gitleaks-action` scopes its scan to the triggering event's commits
+regardless of checkout depth — the name asserted a guarantee the job never
+provided, and the repo had no job that actually re-scanned complete history.
+
+- [x] Renamed that job to "Secret scan (incremental)" so its name matches its
+      actual event-scoped mechanism.
+- [x] Added `full-history-scan.yml`: a new job that runs the `gitleaks` CLI
+      directly over every ref's complete history (`--log-opts="--all"`,
+      `--redact`, `--exit-code 1`) on a weekly schedule plus
+      `workflow_dispatch`, pinned to `gitleaks` 8.30.1 to match the existing
+      pin. This is the genuine full-history layer.
 
 ---
 
