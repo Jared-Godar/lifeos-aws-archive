@@ -6,6 +6,8 @@ updates:
       interval: monthly
     labels:
       - dependencies
+    assignees:
+      - Jared-Godar
 
   - package-ecosystem: npm
     directory: /
@@ -13,6 +15,8 @@ updates:
       interval: monthly
     labels:
       - dependencies
+    assignees:
+      - Jared-Godar
 
   - package-ecosystem: uv
     directory: /
@@ -20,3 +24,5 @@ updates:
       interval: monthly
     labels:
       - dependencies
+    assignees:
+      - Jared-Godar
